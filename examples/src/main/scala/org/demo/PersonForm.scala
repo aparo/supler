@@ -45,7 +45,7 @@ object PersonForm {
     f.field(_.birthday).label("Birthday"),
     f.field(_.likesBroccoli).label("Likes broccoli"),
     f.field(_.address1).label("Address 1"),
-    f.field(_.address2).label("Address 2"),
+    f.field(_.address2).label("Address 2").enabled(p => p.address1.isDefined && p.address1.get.length > 3),
     f.setField(_.favoriteColors).label("Favorite colors").possibleValues(_ => List("red", "green", "blue", "magenta")),
     f.field(_.gender).label("Gender").possibleValues(_ => List("Male", "Female")).renderHint(asRadio()),
     f.field(_.secret).label("Secret").renderHint(asPassword()),

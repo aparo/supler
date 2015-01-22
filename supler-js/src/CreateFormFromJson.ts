@@ -69,6 +69,9 @@ class CreateFormFromJson {
       'supler:path': fieldData.path
     }, renderOptions.additionalFieldOptions());
 
+    if(!fieldData.enabled)
+      return null;
+
     switch (fieldData.type) {
       case FieldTypes.STRING:
         return this.stringFieldFromJson(renderOptions, fieldData, fieldOptions, compact);

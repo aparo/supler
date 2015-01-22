@@ -6,16 +6,16 @@ import org.supler.errors._
 import org.supler.transformation.FullTransformer
 
 case class BasicField[T, U](
-  name: String,
-  read: T => U,
-  write: (T, U) => T,
-  validators: List[Validator[T, U]],
-  valuesProvider: Option[ValuesProvider[T, U]],
-  label: Option[String],
-  required: Boolean,
-  transformer: FullTransformer[U, _],
-  renderHint: Option[RenderHint with BasicFieldCompatible],
-  emptyValue: Option[U]) extends Field[T] with NonNestedFieldJSON[T, U] {
+    name: String,
+    read: T => U,
+    write: (T, U) => T,
+    validators: List[Validator[T, U]],
+    valuesProvider: Option[ValuesProvider[T, U]],
+    label: Option[String],
+    required: Boolean,
+    transformer: FullTransformer[U, _],
+    renderHint: Option[RenderHint with BasicFieldCompatible],
+    emptyValue: Option[U]) extends Field[T] with NonNestedFieldJSON[T, U] {
 
   def label(newLabel: String): BasicField[T, U] = this.copy(label = Some(newLabel))
 
@@ -25,7 +25,7 @@ case class BasicField[T, U](
 
   def possibleValues(values: T => List[U]): BasicField[T, U] = this.valuesProvider match {
     case Some(_) => throw new IllegalStateException("A values provider is already defined!")
-    case None => this.copy(valuesProvider = Some(values))
+    case None    => this.copy(valuesProvider = Some(values))
   }
 
   def emptyValue(newEmptyValue: Option[U]): BasicField[T, U] = this.copy(emptyValue = newEmptyValue)
@@ -56,8 +56,7 @@ case class BasicField[T, U](
       validationJSON = JField(JSONFieldNames.ValidateRequired, JBool(required)) :: validators.flatMap(_.generateJSON),
       fieldTypeName = SpecialFieldTypes.Select,
       emptyValue = if (currentValue == -1 || !required) Some(JInt(-1)) else None,
-      extraJSON = generatePossibleValuesJSON(possibleValues)
-    )
+      extraJSON = generatePossibleValuesJSON(possibleValues))
   }
 
   protected def generateJSONWithoutValuesProvider(obj: T) = {
@@ -65,8 +64,7 @@ case class BasicField[T, U](
       valueJSONValue = transformer.serialize(read(obj)),
       validationJSON = JField(JSONFieldNames.ValidateRequired, JBool(required)) :: validators.flatMap(_.generateJSON),
       fieldTypeName = transformer.jsonSchemaName,
-      emptyValue = emptyValue.flatMap(transformer.serialize)
-    )
+      emptyValue = emptyValue.flatMap(transformer.serialize))
   }
 
   private[supler] override def applyJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {

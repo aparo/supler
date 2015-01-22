@@ -3,14 +3,14 @@ package org.supler.field
 import org.json4s.JValue
 import org.json4s.JsonAST._
 import org.supler.transformation.FullTransformer
-import org.supler.{FieldPath, ValuesProvider, Message}
-import org.supler.errors.{ValidationScope, PartiallyAppliedObj}
+import org.supler.{ FieldPath, ValuesProvider, Message }
+import org.supler.errors.{ ValidationScope, PartiallyAppliedObj }
 
 import scala.concurrent.forkjoin.ThreadLocalRandom
 
 case class StaticField[T](
-  createMessage: T => Message,
-  label: Option[String]) extends Field[T] with NonNestedFieldJSON[T, String] {
+    createMessage: T => Message,
+    label: Option[String]) extends Field[T] with NonNestedFieldJSON[T, String] {
 
   val name = "_supler_static_" + ThreadLocalRandom.current().nextInt()
   val renderHint = None
@@ -25,12 +25,10 @@ case class StaticField[T](
     GenerateJSONData(
       valueJSONValue = Some(JObject(
         JField("params", JArray(msg.params.toList.flatMap(p => transformer.serialize(toStringOrNull(p)).toList))) ::
-          transformer.serialize(msg.key).map(JField("key", _)).toList
-      )),
+          transformer.serialize(msg.key).map(JField("key", _)).toList)),
       validationJSON = Nil,
       emptyValue = None,
-      fieldTypeName = SpecialFieldTypes.Static
-    )
+      fieldTypeName = SpecialFieldTypes.Static)
   }
 
   override protected def generateJSONWithValuesProvider(obj: T, dp: ValuesProvider[T, String]) =

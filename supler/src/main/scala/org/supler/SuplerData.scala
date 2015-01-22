@@ -46,8 +46,7 @@ trait FormWithObject[T] extends SuplerData[T] {
       JField("is_supler_form", JBool(value = true)),
       JField("main_form", form.generateJSON(EmptyPath, obj)),
       JField("errors", JArray(allErrors.map(_.generateJSON))),
-      JField("custom_data", customData.getOrElse(JNothing))
-    )
+      JField("custom_data", customData.getOrElse(JNothing)))
   }
 
   /**
@@ -62,7 +61,7 @@ trait FormWithObject[T] extends SuplerData[T] {
 
     applied.findAndRunAction(jvalue) match {
       case Some(actionResult) => actionResult
-      case None => applied.doValidate(ValidateFilled)
+      case None               => applied.doValidate(ValidateFilled)
     }
   }
 
@@ -78,7 +77,7 @@ trait FormWithObject[T] extends SuplerData[T] {
       } else {
         runnableAction.run() match {
           case FullCompleteActionResult(t, customData) => InitialFormWithObject(form, t.asInstanceOf[T], customData)
-          case CustomDataCompleteActionResult(json) => CustomDataOnly(json)
+          case CustomDataCompleteActionResult(json)    => CustomDataOnly(json)
         }
       }
     }
@@ -91,11 +90,11 @@ case class InitialFormWithObject[T](form: Form[T], obj: T, customData: Option[JV
 }
 
 case class FormWithObjectAndErrors[T](
-  form: Form[T],
-  obj: T,
-  customData: Option[JValue],
-  applyErrors: FieldErrors,
-  validationErrors: FieldErrors) extends FormWithObject[T] {
+    form: Form[T],
+    obj: T,
+    customData: Option[JValue],
+    applyErrors: FieldErrors,
+    validationErrors: FieldErrors) extends FormWithObject[T] {
 
   def errors: FieldErrors = allErrors
   def hasErrors: Boolean = allErrors.size > 0

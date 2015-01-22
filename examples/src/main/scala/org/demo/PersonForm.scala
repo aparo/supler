@@ -3,7 +3,7 @@ package org.demo
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.supler.field.ActionResult
-import org.supler.{Message, Supler}
+import org.supler.{ Message, Supler }
 import Supler._
 import org.supler.transformation.StringTransformer
 
@@ -12,23 +12,20 @@ object PersonForm {
     "Ford" -> List("Ka", "Focus", "Mondeo", "Transit"),
     "Toyota" -> List("Aygo", "Yaris", "Corolla", "Auris", "Verso", "Avensis", "Rav4"),
     "KIA" -> List("Picanto", "Venga", "cee'd", "sport c'eed", "Carens", "Sportage"),
-    "Lada" -> List("Niva")
-  )
+    "Lada" -> List("Niva"))
 
   def carForm(deleteAction: Car => ActionResult[Car]) = form[Car](f => List(
     f.field(_.make).possibleValues(_ => carMakesAndModels.keys.toList).label("Make"),
     f.field(_.model).possibleValues(car => carMakesAndModels.getOrElse(car.make, Nil)).label("Model"),
     f.field(_.year).validate(gt(1900)).label("Year"),
-    f.action("delete")(c => { println(s"Running action: delete car $c"); deleteAction(c) }).label("Delete")
-  ))
+    f.action("delete")(c => { println(s"Running action: delete car $c"); deleteAction(c) }).label("Delete")))
 
   def legoSetForm(deleteAction: LegoSet => ActionResult[LegoSet]) = form[LegoSet](f => List(
     f.field(_.name).label("label_lego_name"),
     f.field(_.theme).label("label_lego_theme").possibleValues(_ => List("City", "Technic", "Duplo", "Space", "Friends", "Universal")),
     f.field(_.number).label("label_lego_setnumber").validate(lt(100000)),
     f.field(_.age).label("label_lego_age").validate(ge(0), le(50)),
-    f.action("delete")(deleteAction).label("Delete")
-  ))
+    f.action("delete")(deleteAction).label("Delete")))
 
   implicit val dateTimeTransformer = new StringTransformer[DateTime] {
     override def serialize(t: DateTime) = ISODateTimeFormat.date().print(t)
@@ -57,8 +54,7 @@ object PersonForm {
     f.action("addcar")(p => ActionResult(p.copy(cars = p.cars :+ Car("", "", 0)))).label("Add car"),
     f.subform(_.legoSets, legoSetForm(f.parentAction((person, index, ls) => ActionResult(deleteLegoSet(person, ls))))).label("Lego sets").renderHint(asTable()),
     f.action("addlegoset")(p => ActionResult(p.copy(legoSets = p.legoSets :+ LegoSet("", "", 0, 0)))).label("Add lego set"),
-    f.staticField(p => Message(p.registrationDate)).label("Registration date")
-  ))
+    f.staticField(p => Message(p.registrationDate)).label("Registration date")))
 
   def deleteCar(p: Person, c: Car): Person = p.copy(cars = p.cars diff List(c))
   def deleteLegoSet(p: Person, ls: LegoSet): Person = p.copy(legoSets = p.legoSets diff List(ls))
@@ -83,12 +79,10 @@ case class Person(
 case class Car(
   make: String,
   model: String,
-  year: Int
-)
+  year: Int)
 
 case class LegoSet(
   name: String,
   theme: String,
   number: Int,
-  age: Int
-)
+  age: Int)

@@ -1,15 +1,15 @@
 package org.supler.field
 
 import org.json4s._
-import org.json4s.JsonAST.{JObject, JField}
+import org.json4s.JsonAST.{ JObject, JField }
 import org.supler.FieldPath
 import org.supler.errors._
 
 case class ActionField[T](
-  name: String,
-  action: T => ActionResult[T],
-  label: Option[String],
-  actionValidationScope: ActionValidationScope) extends Field[T] {
+    name: String,
+    action: T => ActionResult[T],
+    label: Option[String],
+    actionValidationScope: ActionValidationScope) extends Field[T] {
 
   require(name.matches("\\w+"), "Action name must contain only word characters (letters, numbers, _)")
 
@@ -29,8 +29,7 @@ case class ActionField[T](
       JField(Label, JString(label.getOrElse(""))),
       JField(Type, JString(SpecialFieldTypes.Action)),
       JField(Path, JString(parentPath.append(name).toString)),
-      JField("validation_scope", validationScopeJSON)
-    ))))
+      JField("validation_scope", validationScopeJSON)))))
   }
 
   private[supler] override def applyJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]) =
@@ -43,8 +42,7 @@ case class ActionField[T](
       Some(RunnableAction(
         parentPath.append(name),
         actionValidationScope.toValidationScope(parentPath),
-        () => action(obj).completeWith(ctx)
-      ))
+        () => action(obj).completeWith(ctx)))
     } else {
       None
     }
@@ -72,8 +70,9 @@ object ActionResult {
 
 private[supler] case class FullResult[U](result: U, customData: Option[JValue]) extends ActionResult[U] {
   private[supler] override def completeWith(ctx: RunActionContext): CompleteActionResult = {
-    val lastResult = ctx.parentsStack.foldLeft[Any](result) { case (r, (_, _, parentUpdate)) =>
-      parentUpdate.asInstanceOf[Any => Any](r)
+    val lastResult = ctx.parentsStack.foldLeft[Any](result) {
+      case (r, (_, _, parentUpdate)) =>
+        parentUpdate.asInstanceOf[Any => Any](r)
     }
 
     FullCompleteActionResult(lastResult, customData)

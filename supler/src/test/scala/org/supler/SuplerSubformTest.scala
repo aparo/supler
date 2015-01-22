@@ -9,8 +9,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
   case class Car(make: String, age: Int)
   val carForm = form[Car](f => List(
     f.field(_.make),
-    f.field(_.age)
-  ))
+    f.field(_.age)))
 
   case class PersonManyCars(name: String, cars: List[Car])
   val pmc1 = PersonManyCars("p1", List(Car("m1", 10), Car("m2", 20)))
@@ -35,11 +34,11 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta.carsField
 
-    carsField.name should be ("cars")
-    carsField.read(pmc1) should be (List(Car("m1", 10), Car("m2", 20)))
-    carsField.read(pmc2) should be (Nil)
-    carsField.write(pmc1, Nil).cars should be (Nil)
-    carsField.write(pmc2, List(Car("m3", 30))).cars should be (List(Car("m3", 30)))
+    carsField.name should be("cars")
+    carsField.read(pmc1) should be(List(Car("m1", 10), Car("m2", 20)))
+    carsField.read(pmc2) should be(Nil)
+    carsField.write(pmc1, Nil).cars should be(Nil)
+    carsField.write(pmc2, List(Car("m3", 30))).cars should be(List(Car("m3", 30)))
   }
 
   "subform" should "create a case class vector field representation" in {
@@ -51,9 +50,9 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta.carsField
 
-    carsField.name should be ("cars")
-    carsField.read(pmcv1) should be (Vector(Car("m1", 10), Car("m2", 20)))
-    carsField.write(pmcv1, Vector()).cars should be (Vector())
+    carsField.name should be("cars")
+    carsField.read(pmcv1) should be(Vector(Car("m1", 10), Car("m2", 20)))
+    carsField.write(pmcv1, Vector()).cars should be(Vector())
   }
 
   "subform" should "create a case class single field representation" in {
@@ -65,9 +64,9 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta.carField
 
-    carField.name should be ("car")
-    carField.read(pc1) should be (Car("m1", 10))
-    carField.write(pc1, Car("m2", 20)).car should be (Car("m2", 20))
+    carField.name should be("car")
+    carField.read(pc1) should be(Car("m1", 10))
+    carField.write(pc1, Car("m2", 20)).car should be(Car("m2", 20))
   }
 
   "subform" should "create a case class optional field representation" in {
@@ -79,11 +78,11 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta.carField
 
-    carField.name should be ("car")
-    carField.read(poc1) should be (Some(Car("m1", 10)))
-    carField.read(poc2) should be (None)
-    carField.write(poc1, Some(Car("m2", 20))).car should be (Some(Car("m2", 20)))
-    carField.write(poc2, None).car should be (None)
+    carField.name should be("car")
+    carField.read(poc1) should be(Some(Car("m1", 10)))
+    carField.read(poc2) should be(None)
+    carField.write(poc1, Some(Car("m2", 20))).car should be(Some(Car("m2", 20)))
+    carField.write(poc2, None).car should be(None)
   }
 
   "subform" should "apply json values to a list field" in {
@@ -91,8 +90,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     import org.supler.Supler._
     val personForm = form[PersonManyCars](f => List(
       f.field(_.name),
-      f.subform(_.cars, carForm)
-    ))
+      f.subform(_.cars, carForm)))
 
     val jsonInOrder = parseJson("""
         |{
@@ -113,8 +111,8 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     val result = personForm(PersonManyCars("", Nil)).applyJSONValues(jsonInOrder)
 
     // then
-    result.errors should be ('empty)
-    result.obj should be (PersonManyCars("", List(Car("m1", 10), Car("m2", 20))))
+    result.errors should be('empty)
+    result.obj should be(PersonManyCars("", List(Car("m1", 10), Car("m2", 20))))
   }
 
   "subform" should "apply json values to a single field" in {
@@ -122,8 +120,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     import org.supler.Supler._
     val personForm = form[PersonOneCar](f => List(
       f.field(_.name),
-      f.subform(_.car, carForm)
-    ))
+      f.subform(_.car, carForm)))
 
     val json = parseJson("""
         |{
@@ -137,8 +134,8 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     val result = personForm(PersonOneCar("", Car("m2", 20))).applyJSONValues(json)
 
     // then
-    result.errors should be ('empty)
-    result.obj should be (PersonOneCar("", Car("m1", 10)))
+    result.errors should be('empty)
+    result.obj should be(PersonOneCar("", Car("m1", 10)))
   }
 
   "subform" should "apply json values to an optional field" in {
@@ -146,8 +143,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     import org.supler.Supler._
     val personForm = form[PersonOptionalCal](f => List(
       f.field(_.name),
-      f.subform(_.car, carForm)
-    ))
+      f.subform(_.car, carForm)))
 
     val json1 = parseJson("""
         |{
@@ -164,10 +160,10 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
     val result2 = personForm(PersonOptionalCal("", None)).applyJSONValues(json2)
 
     // then
-    result1.errors should be ('empty)
-    result1.obj should be (PersonOptionalCal("", Some(Car("m1", 10))))
+    result1.errors should be('empty)
+    result1.obj should be(PersonOptionalCal("", Some(Car("m1", 10))))
 
-    result2.errors should be ('empty)
-    result2.obj should be (PersonOptionalCal("", None))
+    result2.errors should be('empty)
+    result2.obj should be(PersonOptionalCal("", None))
   }
 }

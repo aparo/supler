@@ -1,6 +1,6 @@
 package org.supler.field
 
-import org.json4s.JsonAST.{JField, JObject}
+import org.json4s.JsonAST.{ JField, JObject }
 import org.json4s._
 import org.supler._
 import org.supler.transformation.FullTransformer
@@ -16,7 +16,7 @@ trait NonNestedFieldJSON[T, U] {
   private[supler] override def generateJSON(parentPath: FieldPath, obj: T): List[JField] = {
     val data = valuesProvider match {
       case Some(vp) => generateJSONWithValuesProvider(obj, vp)
-      case None => generateJSONWithoutValuesProvider(obj)
+      case None     => generateJSONWithoutValuesProvider(obj)
     }
 
     import JSONFieldNames._
@@ -25,8 +25,7 @@ trait NonNestedFieldJSON[T, U] {
       JField(Label, JString(label.getOrElse(""))),
       JField(Type, JString(data.fieldTypeName)),
       JField(Validate, JObject(data.validationJSON.toList)),
-      JField(Path, JString(parentPath.append(name).toString))
-    ) ++ data.valueJSONValue.map(JField(Value, _)).toList
+      JField(Path, JString(parentPath.append(name).toString))) ++ data.valueJSONValue.map(JField(Value, _)).toList
       ++ data.emptyValue.map(JField(EmptyValue, _)).toList
       ++ generateRenderHintJSONValue.map(JField(RenderHint, _)).toList
       ++ data.extraJSON)))
@@ -39,8 +38,9 @@ trait NonNestedFieldJSON[T, U] {
   protected def generatePossibleValuesJSON(possibleValues: List[U]): List[JField] = {
     val possibleJValuesWithIndex = possibleValues.zipWithIndex
       .flatMap(t => transformer.serialize(t._1).map(jv => (jv, t._2)))
-    val possibleJValues = possibleJValuesWithIndex.map { case (jvalue, index) =>
-      JObject(JField("index", JInt(index)), JField("label", jvalue))
+    val possibleJValues = possibleJValuesWithIndex.map {
+      case (jvalue, index) =>
+        JObject(JField("index", JInt(index)), JField("label", jvalue))
     }
     List(JField(JSONFieldNames.PossibleValues, JArray(possibleJValues)))
   }
@@ -53,6 +53,5 @@ trait NonNestedFieldJSON[T, U] {
     valueJSONValue: Option[JValue],
     validationJSON: List[JField],
     emptyValue: Option[JValue],
-    extraJSON: List[JField] = Nil
-  )
+    extraJSON: List[JField] = Nil)
 }

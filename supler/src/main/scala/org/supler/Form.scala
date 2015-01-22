@@ -14,13 +14,12 @@ case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
     rows.flatMap(_.doValidate(parentPath, obj, scope))
 
   private[supler] def generateJSON(parentPath: FieldPath, obj: T): JValue = JObject(
-    JField("fields", JObject(rows.flatMap(_.generateJSON(parentPath, obj))))
-  )
+    JField("fields", JObject(rows.flatMap(_.generateJSON(parentPath, obj)))))
 
   private[supler] def applyJSONValues(parentPath: FieldPath, obj: T, jvalue: JValue): PartiallyAppliedObj[T] = {
     jvalue match {
       case JObject(jsonFields) => Row.applyJSONValues(rows, parentPath, obj, jsonFields.toMap)
-      case _ => PartiallyAppliedObj.full(obj)
+      case _                   => PartiallyAppliedObj.full(obj)
     }
   }
 
@@ -32,7 +31,7 @@ case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
   private[supler] def findAction(parentPath: FieldPath, obj: T, jvalue: JValue, ctx: RunActionContext): Option[RunnableAction] = {
     jvalue match {
       case JObject(jsonFields) => Row.findFirstAction(parentPath, rows, obj, jsonFields.toMap, ctx)
-      case _ => None
+      case _                   => None
     }
   }
 

@@ -1,7 +1,7 @@
 package org.supler.field
 
 import org.json4s
-import org.supler.{FieldPath, MultiFieldRow, Row}
+import org.supler.{ FieldPath, MultiFieldRow, Row }
 
 trait Field[T] extends Row[T] {
   def name: String

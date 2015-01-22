@@ -11,8 +11,8 @@ sealed trait FieldPath {
   override lazy val toString = {
     @tailrec
     def gatherComponents(fp: FieldPath, acc: List[String]): List[String] = fp match {
-      case EmptyPath => acc
-      case SingleFieldPath(p, n) => gatherComponents(p, n :: acc)
+      case EmptyPath                       => acc
+      case SingleFieldPath(p, n)           => gatherComponents(p, n :: acc)
       case SingleIndexedFieldPath(p, n, i) => gatherComponents(p, s"$n[$i]" :: acc)
     }
 

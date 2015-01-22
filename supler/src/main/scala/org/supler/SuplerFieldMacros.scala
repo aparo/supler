@@ -7,9 +7,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
 object SuplerFieldMacros {
-  def field_impl[T: c.WeakTypeTag, U: c.WeakTypeTag](c: blackbox.Context)
-    (param: c.Expr[T => U])
-    (transformer: c.Expr[FullTransformer[U, _]]): c.Expr[BasicField[T, U]] = {
+  def field_impl[T: c.WeakTypeTag, U: c.WeakTypeTag](c: blackbox.Context)(param: c.Expr[T => U])(transformer: c.Expr[FullTransformer[U, _]]): c.Expr[BasicField[T, U]] = {
 
     import c.universe._
 
@@ -31,7 +29,7 @@ object SuplerFieldMacros {
     val emptyValue = if (fieldValueType <:< typeOf[Boolean]) reify[Option[U]] { None } else {
       defaultForType(c)(fieldValueType) match {
         case Some(defaultExpr) => c.Expr[Option[U]](reify { Some(defaultExpr.splice) }.tree)
-        case None => c.Expr[Option[U]](reify { None }.tree)
+        case None              => c.Expr[Option[U]](reify { None }.tree)
       }
     }
 
@@ -45,9 +43,7 @@ object SuplerFieldMacros {
     }
   }
 
-  def setField_impl[T: c.WeakTypeTag, U: c.WeakTypeTag](c: blackbox.Context)
-    (param: c.Expr[T => Set[U]])
-    (transformer: c.Expr[FullTransformer[U, _]]): c.Expr[SetField[T, U]] = {
+  def setField_impl[T: c.WeakTypeTag, U: c.WeakTypeTag](c: blackbox.Context)(param: c.Expr[T => Set[U]])(transformer: c.Expr[FullTransformer[U, _]]): c.Expr[SetField[T, U]] = {
 
     import c.universe._
 
@@ -67,16 +63,12 @@ object SuplerFieldMacros {
     }
   }
 
-  def subform_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)
-    (param: c.Expr[T => ContU], form: c.Expr[Form[U]])
-    (container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
+  def subform_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)(param: c.Expr[T => ContU], form: c.Expr[Form[U]])(container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
 
     subform_createempty_impl[T, ContU, U, Cont](c)(param, form, null)(container)
   }
 
-  def subform_createempty_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)
-    (param: c.Expr[T => ContU], form: c.Expr[Form[U]], createEmpty: c.Expr[() => U])
-    (container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
+  def subform_createempty_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)(param: c.Expr[T => ContU], form: c.Expr[Form[U]], createEmpty: c.Expr[() => U])(container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
 
     import c.universe._
 
@@ -106,20 +98,19 @@ object SuplerFieldMacros {
 
   object FactoryMethods {
     def newBasicField[T, U, S](fieldName: String, read: T => U, write: (T, U) => T, required: Boolean,
-      transformer: FullTransformer[U, S], emptyValue: Option[U]): BasicField[T, U] = {
+                               transformer: FullTransformer[U, S], emptyValue: Option[U]): BasicField[T, U] = {
 
       BasicField[T, U](fieldName, read, write, List(), None, None, required, transformer, None, emptyValue)
     }
 
-    def newSubformField[T, ContU, U, Cont[_]](c: SubformContainer[ContU, U, Cont])
-      (fieldName: String, read: T => Cont[U], write: (T, Cont[U]) => T,
-        embeddedForm: Form[U], createEmpty: Option[() => U]): SubformField[T, ContU, U, Cont] = {
+    def newSubformField[T, ContU, U, Cont[_]](c: SubformContainer[ContU, U, Cont])(fieldName: String, read: T => Cont[U], write: (T, Cont[U]) => T,
+                                                                                   embeddedForm: Form[U], createEmpty: Option[() => U]): SubformField[T, ContU, U, Cont] = {
 
       SubformField[T, ContU, U, Cont](c, fieldName, read, write, None, embeddedForm, createEmpty, SubformListRenderHint)
     }
 
     def newSetField[T, U](fieldName: String, read: T => Set[U], write: (T, Set[U]) => T,
-      transformer: FullTransformer[U, _]): SetField[T, U] = {
+                          transformer: FullTransformer[U, _]): SetField[T, U] = {
 
       SetField[T, U](fieldName, read, write, Nil, None, None, transformer, None)
     }
@@ -129,9 +120,9 @@ object SuplerFieldMacros {
     import c.universe._
     val fieldName = param match {
       case Expr(
-      Function(
-      List(ValDef(Modifiers(_, _, _), TermName(termDef: String), TypeTree(), EmptyTree)),
-      Select(Ident(TermName(termUse: String)), TermName(field: String)))) if termDef == termUse =>
+        Function(
+          List(ValDef(Modifiers(_, _, _), TermName(termDef: String), TypeTree(), EmptyTree)),
+          Select(Ident(TermName(termUse: String)), TermName(field: String)))) if termDef == termUse =>
         field
       case _ => throw new IllegalArgumentException("Illegal field reference " + show(param.tree) + "; please use _.fieldName instead")
     }

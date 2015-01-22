@@ -1,9 +1,9 @@
 package org.supler
 
-import java.io.{File, PrintWriter}
+import java.io.{ File, PrintWriter }
 
-import org.json4s.JsonAST.{JString, JField, JBool, JObject}
-import org.json4s.{Extraction, NoTypeHints}
+import org.json4s.JsonAST.{ JString, JField, JBool, JObject }
+import org.json4s.{ Extraction, NoTypeHints }
 import org.json4s.native.Serialization
 import org.scalatest._
 import org.supler.Supler._
@@ -38,12 +38,11 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
     f.field(_.field1).label("Field 1"),
     f.field(_.field2).label("Field 2"),
     f.field(_.field3).label("Field 3").validate(gt(10)),
-    f.field(_.field4).label("Field 4")
-  ))
+    f.field(_.field4).label("Field 4")))
 
   val simpleObj1 = Simple1("v1", Some("v2"), 0, field4 = true)
   val simpleObj2 = Simple1("v1", None, 15, field4 = true)
-  
+
   writeTestData("simple1") { writer =>
     writer.writeForm("form1", simple1Form, simpleObj1)
     writer.writeValidatedForm("form1validated", simple1Form, simpleObj1)
@@ -57,24 +56,20 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
   writeTestData("simple1action") { writer =>
     val fAction = form[Simple1](f => List(
       f.field(_.field3).label("Field 3"),
-      f.action("inc") { s => ActionResult(s.copy(field3 = s.field3 + 1)) }
-    ))
+      f.action("inc") { s => ActionResult(s.copy(field3 = s.field3 + 1)) }))
 
     val fTwoActions = form[Simple1](f => List(
       f.field(_.field1).label("Field 1"),
       f.action("inc") { s => ActionResult(s.copy(field1 = s.field1 + "x")) },
-      f.action("save") { s => ActionResult(s.copy(field1 = s.field1 + "y")) }.validateAll()
-    ))
+      f.action("save") { s => ActionResult(s.copy(field1 = s.field1 + "y")) }.validateAll()))
 
     val fActionFormAndDataResult = form[Simple1](f => List(
       f.field(_.field3).label("Field 3"),
-      f.action("act") { s => ActionResult(s.copy(field3 = s.field3 + 1), customData = Some(JString("data and form"))) }
-    ))
+      f.action("act") { s => ActionResult(s.copy(field3 = s.field3 + 1), customData = Some(JString("data and form"))) }))
 
     val fActionDataResultOnly = form[Simple1](f => List(
       f.field(_.field3).label("Field 3"),
-      f.action("act") { s => ActionResult.custom(JString("data only")) }
-    ))
+      f.action("act") { s => ActionResult.custom(JString("data only")) }))
 
     writer.writeForm("form1", fAction, simpleObj1)
     writer.writeForm("form2", fAction, simpleObj2)
@@ -87,20 +82,16 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
 
   writeTestData("select1") { writer =>
     val fReq = form[Select1Required](f => List(
-      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c"))
-    ))
+      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c"))))
 
     val fReqRadio = form[Select1Required](f => List(
-      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c")).renderHint(asRadio())
-    ))
+      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c")).renderHint(asRadio())))
 
     val fOpt = form[Select1Optional](f => List(
-      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c").map(Some(_)))
-    ))
+      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c").map(Some(_)))))
 
     val fOptRadio = form[Select1Optional](f => List(
-      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c").map(Some(_))).renderHint(asRadio())
-    ))
+      f.field(_.field1).label("Field 1").possibleValues(_ => List("a", "b", "c").map(Some(_))).renderHint(asRadio())))
 
     val obj1req = Select1Required("b")
     val obj2req = Select1Required("")
@@ -117,16 +108,14 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
     writer.writeForm("form1optRadio", fOptRadio, obj1opt)
     writer.writeForm("form2optRadio", fOptRadio, obj2opt)
   }
-  
+
   writeTestData("complex1") { writer =>
     val complexForm1 = form[Complex1](f => List(
       f.field(_.field10).label("Field 10"),
-      f.subform(_.simples, simple1Form).renderHint(asTable())
-    ))
+      f.subform(_.simples, simple1Form).renderHint(asTable())))
     val complexForm2 = form[Complex1](f => List(
       f.field(_.field10).label("Field 10"),
-      f.subform(_.simples, simple1Form).renderHint(asList())
-    ))
+      f.subform(_.simples, simple1Form).renderHint(asList())))
 
     val obj1 = Complex1("c1", List(
       Simple1("f11", Some("x"), 11, field4 = true),
@@ -146,8 +135,7 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
   writeTestData("complex2") { writer =>
     val complexForm1 = form[Complex2](f => List(
       f.field(_.field10).label("Field 10"),
-      f.subform(_.simple, simple1Form)
-    ))
+      f.subform(_.simple, simple1Form)))
 
     val obj1 = Complex2("c1", Simple1("f11", Some("x"), 11, field4 = true))
 
@@ -159,8 +147,7 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
   writeTestData("complex3") { writer =>
     val complexForm1 = form[Complex3](f => List(
       f.field(_.field10).label("Field 10"),
-      f.subform(_.simple, simple1Form)
-    ))
+      f.subform(_.simple, simple1Form)))
 
     val obj1 = Complex3("c1", Some(Simple1("f11", Some("x"), 11, field4 = true)))
     val obj2 = Complex3("c1", None)

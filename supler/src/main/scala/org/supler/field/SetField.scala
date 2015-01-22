@@ -7,14 +7,14 @@ import org.supler.errors._
 import org.supler.transformation.FullTransformer
 
 case class SetField[T, U](
-  name: String,
-  read: T => Set[U],
-  write: (T, Set[U]) => T,
-  validators: List[Validator[T, Set[U]]],
-  valuesProvider: Option[ValuesProvider[T, U]],
-  label: Option[String],
-  transformer: FullTransformer[U, _],
-  renderHint: Option[RenderHint with SetFieldCompatible]) extends Field[T] with NonNestedFieldJSON[T, U] {
+    name: String,
+    read: T => Set[U],
+    write: (T, Set[U]) => T,
+    validators: List[Validator[T, Set[U]]],
+    valuesProvider: Option[ValuesProvider[T, U]],
+    label: Option[String],
+    transformer: FullTransformer[U, _],
+    renderHint: Option[RenderHint with SetFieldCompatible]) extends Field[T] with NonNestedFieldJSON[T, U] {
 
   def label(newLabel: String): SetField[T, U] = this.copy(label = Some(newLabel))
 
@@ -24,7 +24,7 @@ case class SetField[T, U](
 
   def possibleValues(values: ValuesProvider[T, U]): SetField[T, U] = this.valuesProvider match {
     case Some(_) => throw new IllegalStateException("A values provider is already defined!")
-    case None => this.copy(valuesProvider = Some(values))
+    case None    => this.copy(valuesProvider = Some(values))
   }
 
   private[supler] override def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope): List[FieldErrorMessage] = {
@@ -44,8 +44,7 @@ case class SetField[T, U](
       validationJSON = validators.flatMap(_.generateJSON),
       fieldTypeName = SpecialFieldTypes.Select,
       emptyValue = None,
-      extraJSON = JField(JSONFieldNames.Multiple, JBool(value = true)) :: generatePossibleValuesJSON(possibleValues)
-    )
+      extraJSON = JField(JSONFieldNames.Multiple, JBool(value = true)) :: generatePossibleValuesJSON(possibleValues))
   }
 
   protected def generateJSONWithoutValuesProvider(obj: T) = {
@@ -53,8 +52,7 @@ case class SetField[T, U](
       valueJSONValue = Some(JArray(read(obj).toList.flatMap(i => transformer.serialize(i)))),
       validationJSON = validators.flatMap(_.generateJSON),
       emptyValue = None,
-      fieldTypeName = transformer.jsonSchemaName
-    )
+      fieldTypeName = transformer.jsonSchemaName)
   }
 
   private[supler] override def applyJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {

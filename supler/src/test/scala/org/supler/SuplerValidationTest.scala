@@ -1,7 +1,7 @@
 package org.supler
 
 import org.scalatest._
-import org.supler.errors.{ValidateInPath, ValidateNone, ValidateFilled, ValidateAll}
+import org.supler.errors.{ ValidateInPath, ValidateNone, ValidateFilled, ValidateAll }
 import Supler._
 
 class SuplerValidationTest extends FlatSpec with ShouldMatchers {
@@ -25,25 +25,25 @@ class SuplerValidationTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta._
 
-    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
-    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be (1)
-    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be (1)
+    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
+    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be(1)
+    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be(1)
 
-    f2Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
-    f2Field.doValidate(EmptyPath, p2, ValidateAll).size should be (0)
-    f2Field.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
+    f2Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
+    f2Field.doValidate(EmptyPath, p2, ValidateAll).size should be(0)
+    f2Field.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
 
-    f3Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
-    f3Field.doValidate(EmptyPath, p2, ValidateAll).size should be (1)
-    f3Field.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
+    f3Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
+    f3Field.doValidate(EmptyPath, p2, ValidateAll).size should be(1)
+    f3Field.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
 
-    f3Field2.doValidate(EmptyPath, p1, ValidateAll).size should be (1)
-    f3Field2.doValidate(EmptyPath, p2, ValidateAll).size should be (0)
-    f3Field2.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
+    f3Field2.doValidate(EmptyPath, p1, ValidateAll).size should be(1)
+    f3Field2.doValidate(EmptyPath, p2, ValidateAll).size should be(0)
+    f3Field2.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
 
-    f4Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
-    f4Field.doValidate(EmptyPath, p2, ValidateAll).size should be (0)
-    f4Field.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
+    f4Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
+    f4Field.doValidate(EmptyPath, p2, ValidateAll).size should be(0)
+    f4Field.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
   }
 
   "field" should "not validate empty values if validating only filled" in {
@@ -63,15 +63,15 @@ class SuplerValidationTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta._
 
-    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
-    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be (1)
-    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be (2)
-    f1Field.doValidate(EmptyPath, p4, ValidateAll).size should be (1)
+    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
+    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be(1)
+    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be(2)
+    f1Field.doValidate(EmptyPath, p4, ValidateAll).size should be(1)
 
-    f1Field.doValidate(EmptyPath, p1, ValidateFilled).size should be (0)
-    f1Field.doValidate(EmptyPath, p2, ValidateFilled).size should be (1)
-    f1Field.doValidate(EmptyPath, p3, ValidateFilled).size should be (0)
-    f1Field.doValidate(EmptyPath, p4, ValidateFilled).size should be (0)
+    f1Field.doValidate(EmptyPath, p1, ValidateFilled).size should be(0)
+    f1Field.doValidate(EmptyPath, p2, ValidateFilled).size should be(1)
+    f1Field.doValidate(EmptyPath, p3, ValidateFilled).size should be(0)
+    f1Field.doValidate(EmptyPath, p4, ValidateFilled).size should be(0)
   }
 
   "form" should "validate the specified form fragment" in {
@@ -82,36 +82,35 @@ class SuplerValidationTest extends FlatSpec with ShouldMatchers {
     val personForm = form[Person](f => List(f.field(_.size).validate(gt(0))))
     val cityForm = form[City](f => List(
       f.field(_.name),
-      f.subform(_.people, personForm)
-    ))
+      f.subform(_.people, personForm)))
 
     val c1 = City("city1", List(Person(10), Person(20)))
     val c2 = City("city2", List(Person(-10)))
     val c3 = City("", List(Person(20), Person(-10), Person(0)))
 
     // when
-    cityForm.doValidate(EmptyPath, c1, ValidateAll).size should be (0)
-    cityForm.doValidate(EmptyPath, c2, ValidateAll).size should be (1)
-    cityForm.doValidate(EmptyPath, c3, ValidateAll).size should be (4)
+    cityForm.doValidate(EmptyPath, c1, ValidateAll).size should be(0)
+    cityForm.doValidate(EmptyPath, c2, ValidateAll).size should be(1)
+    cityForm.doValidate(EmptyPath, c3, ValidateAll).size should be(4)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateFilled).size should be (0)
-    cityForm.doValidate(EmptyPath, c2, ValidateFilled).size should be (1)
-    cityForm.doValidate(EmptyPath, c3, ValidateFilled).size should be (1)
+    cityForm.doValidate(EmptyPath, c1, ValidateFilled).size should be(0)
+    cityForm.doValidate(EmptyPath, c2, ValidateFilled).size should be(1)
+    cityForm.doValidate(EmptyPath, c3, ValidateFilled).size should be(1)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateNone).size should be (0)
-    cityForm.doValidate(EmptyPath, c2, ValidateNone).size should be (0)
-    cityForm.doValidate(EmptyPath, c3, ValidateNone).size should be (0)
+    cityForm.doValidate(EmptyPath, c1, ValidateNone).size should be(0)
+    cityForm.doValidate(EmptyPath, c2, ValidateNone).size should be(0)
+    cityForm.doValidate(EmptyPath, c3, ValidateNone).size should be(0)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath)).size should be (0)
-    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath)).size should be (1)
-    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath)).size should be (4)
+    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath)).size should be(0)
+    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath)).size should be(1)
+    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath)).size should be(4)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.append("people"))).size should be (0)
-    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.append("people"))).size should be (1)
-    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.append("people"))).size should be (3)
+    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.append("people"))).size should be(0)
+    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.append("people"))).size should be(1)
+    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.append("people"))).size should be(3)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be (0)
-    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be (0)
-    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be (1)
+    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be(0)
+    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be(0)
+    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be(1)
   }
 }

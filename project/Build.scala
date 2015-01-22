@@ -1,9 +1,21 @@
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin._
 import AssemblyKeys._
+import com.typesafe.sbt.SbtScalariform
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+
+import _root_.scalariform.formatter.preferences.AlignParameters
+import _root_.scalariform.formatter.preferences.AlignSingleLineCaseStatements
+import _root_.scalariform.formatter.preferences.DoubleIndentClassDeclaration
+import _root_.scalariform.formatter.preferences.FormattingPreferences
+import _root_.scalariform.formatter.preferences.IndentSpaces
+import _root_.scalariform.formatter.preferences.RewriteArrowSymbols
 
 object BuildSettings {
+
+
   val buildSettings = Defaults.coreDefaultSettings ++ Seq(
     organization := "com.softwaremill",
     version := "0.1.0",
@@ -40,6 +52,20 @@ object BuildSettings {
     homepage := Some(new java.net.URL("https://github.com/softwaremill/supler")),
     licenses := ("Apache2", new java.net.URL("http://www.apache.org/licenses/LICENSE-2.0.txt")) :: Nil
   )
+
+  lazy val formatSettings = SbtScalariform.scalariformSettings ++ Seq(
+    ScalariformKeys.preferences in Compile := formattingPreferences,
+    ScalariformKeys.preferences in Test := formattingPreferences)
+
+  import scalariform.formatter.preferences._
+  def formattingPreferences =
+    FormattingPreferences()
+      .setPreference(RewriteArrowSymbols, false)
+      .setPreference(AlignParameters, true)
+      .setPreference(AlignSingleLineCaseStatements, true)
+      .setPreference(DoubleIndentClassDeclaration, true)
+      .setPreference(IndentSpaces, 2)
+
 }
 
 object Dependencies {
@@ -72,7 +98,7 @@ object SuplerBuild extends Build {
     settings = buildSettings ++ Seq(
       libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
       libraryDependencies ++= Seq(json4sNative, scalaTest))
-  )
+  ).settings(formatSettings: _*)
 
   lazy val createAndCopySuplerJs = taskKey[Unit]("Create and copy the supler js files.")
 
@@ -96,7 +122,7 @@ object SuplerBuild extends Build {
       },
       assembly <<= assembly.dependsOn(createAndCopySuplerJs),
       publishArtifact := false)
-  ) dependsOn (supler)
+  ).settings(formatSettings: _*) dependsOn (supler)
 
   private def haltOnCmdResultError(result: Int) {
     if (result != 0) throw new Exception("Build failed.")

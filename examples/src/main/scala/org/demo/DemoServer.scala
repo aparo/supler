@@ -9,7 +9,7 @@ import org.supler.field.ActionResult
 import spray.http.MediaTypes
 import spray.http.StatusCodes._
 import spray.httpx.Json4sSupport
-import spray.routing.{Route, SimpleRoutingApp}
+import spray.routing.{ Route, SimpleRoutingApp }
 
 object DemoServer extends App with SimpleRoutingApp with Json4sSupport {
   implicit val actorSystem = ActorSystem()
@@ -50,26 +50,26 @@ object DemoServer extends App with SimpleRoutingApp with Json4sSupport {
           personFormWithSave(person).generateJSON
         }
       } ~
-      post {
-        entity(as[JValue]) { jvalue =>
-          complete {
-            personFormWithSave(person).process(jvalue).generateJSON
+        post {
+          entity(as[JValue]) { jvalue =>
+            complete {
+              personFormWithSave(person).process(jvalue).generateJSON
+            }
           }
         }
+    } ~
+      pathSuffixTest(".+\\.ts".r) { id =>
+        sourceMapDirective
+      } ~
+      pathPrefix("site") {
+        getFromResourceDirectory("")
+      } ~
+      pathPrefix("supler-js") {
+        suplerJsDirective
+      } ~
+      path("") {
+        redirect("/site/index.html", Found)
       }
-    } ~
-    pathSuffixTest(".+\\.ts".r) { id =>
-      sourceMapDirective
-    } ~
-    pathPrefix("site") {
-      getFromResourceDirectory("")
-    } ~
-    pathPrefix("supler-js") {
-      suplerJsDirective
-    } ~
-    path("") {
-      redirect("/site/index.html", Found)
-    }
   }
 
   println(s"Server starting... open http://localhost:$port")

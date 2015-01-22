@@ -17,11 +17,12 @@ object PartiallyAppliedObj {
 
   def flatten[T](paos: List[PartiallyAppliedObj[T]]): PartiallyAppliedObj[List[T]] = {
     paos
-      .foldLeft(full(Nil: List[T])) { case (result, pao) =>
-        for {
-          o <- pao
-          l <- result
-        } yield o :: l
+      .foldLeft(full(Nil: List[T])) {
+        case (result, pao) =>
+          for {
+            o <- pao
+            l <- result
+          } yield o :: l
       }
       .map(_.reverse)
   }

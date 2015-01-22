@@ -3,8 +3,7 @@ package org.supler
 import scala.reflect.macros.blackbox
 
 object SuplerFormMacros {
-  def form_impl[T: c.WeakTypeTag](c: blackbox.Context)
-    (rows: c.Expr[Supler[T] => List[Row[T]]]): c.Expr[Form[T]] = {
+  def form_impl[T: c.WeakTypeTag](c: blackbox.Context)(rows: c.Expr[Supler[T] => List[Row[T]]]): c.Expr[Form[T]] = {
 
     import c.universe._
 

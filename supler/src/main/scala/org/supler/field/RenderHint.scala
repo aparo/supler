@@ -1,6 +1,6 @@
 package org.supler.field
 
-import org.json4s.JsonAST.{JField, JInt}
+import org.json4s.JsonAST.{ JField, JInt }
 
 abstract class RenderHint(val name: String) {
   def extraJSON: List[JField] = Nil

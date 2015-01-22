@@ -11,21 +11,13 @@ import scala.language.experimental.macros
 object Supler extends Validators {
   def form[T](rows: Supler[T] => List[Row[T]]): Form[T] = macro SuplerFormMacros.form_impl[T]
 
-  def field[T, U](param: T => U)
-    (implicit transformer: FullTransformer[U, _]): BasicField[T, U] =
-    macro SuplerFieldMacros.field_impl[T, U]
+  def field[T, U](param: T => U)(implicit transformer: FullTransformer[U, _]): BasicField[T, U] = macro SuplerFieldMacros.field_impl[T, U]
 
-  def setField[T, U](param: T => Set[U])
-    (implicit transformer: FullTransformer[U, _]): SetField[T, U] =
-    macro SuplerFieldMacros.setField_impl[T, U]
+  def setField[T, U](param: T => Set[U])(implicit transformer: FullTransformer[U, _]): SetField[T, U] = macro SuplerFieldMacros.setField_impl[T, U]
 
-  def subform[T, ContU, U, Cont[_]](param: T => ContU, form: Form[U])
-    (implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] =
-    macro SuplerFieldMacros.subform_impl[T, ContU, U, Cont]
+  def subform[T, ContU, U, Cont[_]](param: T => ContU, form: Form[U])(implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] = macro SuplerFieldMacros.subform_impl[T, ContU, U, Cont]
 
-  def subform[T, ContU, U, Cont[_]](param: T => ContU, form: Form[U], createEmpty: () => U)
-    (implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] =
-    macro SuplerFieldMacros.subform_createempty_impl[T, ContU, U, Cont]
+  def subform[T, ContU, U, Cont[_]](param: T => ContU, form: Form[U], createEmpty: () => U)(implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] = macro SuplerFieldMacros.subform_createempty_impl[T, ContU, U, Cont]
 
   def action[T](name: String)(action: T => ActionResult[T]): ActionField[T] =
     ActionField(name, action, None, BeforeActionValidateNone)
@@ -46,21 +38,13 @@ object Supler extends Validators {
 }
 
 trait Supler[T] extends Validators {
-  def field[U](param: T => U)
-    (implicit transformer: FullTransformer[U, _]): BasicField[T, U] =
-    macro SuplerFieldMacros.field_impl[T, U]
+  def field[U](param: T => U)(implicit transformer: FullTransformer[U, _]): BasicField[T, U] = macro SuplerFieldMacros.field_impl[T, U]
 
-  def setField[U](param: T => Set[U])
-    (implicit transformer: FullTransformer[U, _]): SetField[T, U] =
-    macro SuplerFieldMacros.setField_impl[T, U]
+  def setField[U](param: T => Set[U])(implicit transformer: FullTransformer[U, _]): SetField[T, U] = macro SuplerFieldMacros.setField_impl[T, U]
 
-  def subform[ContU, U, Cont[_]](param: T => ContU, form: Form[U])
-    (implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] =
-    macro SuplerFieldMacros.subform_impl[T, ContU, U, Cont]
+  def subform[ContU, U, Cont[_]](param: T => ContU, form: Form[U])(implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] = macro SuplerFieldMacros.subform_impl[T, ContU, U, Cont]
 
-  def subform[U, ContU, Cont[_]](param: T => ContU, form: Form[U], createEmpty: () => U)
-    (implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] =
-    macro SuplerFieldMacros.subform_createempty_impl[T, ContU, U, Cont]
+  def subform[U, ContU, Cont[_]](param: T => ContU, form: Form[U], createEmpty: () => U)(implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] = macro SuplerFieldMacros.subform_createempty_impl[T, ContU, U, Cont]
 
   def action(name: String)(action: T => ActionResult[T]): ActionField[T] = ActionField(name, action, None, BeforeActionValidateNone)
 
@@ -82,16 +66,16 @@ trait Row[T] {
 }
 
 object Row {
-  def applyJSONValues[T](toRows: Iterable[Row[T]], parentPath: FieldPath, obj: T, 
-    jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {
-    
+  def applyJSONValues[T](toRows: Iterable[Row[T]], parentPath: FieldPath, obj: T,
+                         jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {
+
     toRows.foldLeft[PartiallyAppliedObj[T]](PartiallyAppliedObj.full(obj)) { (pao, row) =>
       pao.flatMap(row.applyJSONValues(parentPath, _, jsonFields))
     }
   }
 
   def findFirstAction[T](parentPath: FieldPath, rows: Iterable[Row[T]], obj: T, jsonFields: Map[String, JValue],
-    ctx: RunActionContext): Option[RunnableAction] = {
+                         ctx: RunActionContext): Option[RunnableAction] = {
 
     Util.findFirstMapped(
       rows,

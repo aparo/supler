@@ -1,17 +1,9 @@
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin._
 import AssemblyKeys._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-
-import _root_.scalariform.formatter.preferences.AlignParameters
-import _root_.scalariform.formatter.preferences.AlignSingleLineCaseStatements
-import _root_.scalariform.formatter.preferences.DoubleIndentClassDeclaration
-import _root_.scalariform.formatter.preferences.FormattingPreferences
-import _root_.scalariform.formatter.preferences.IndentSpaces
-import _root_.scalariform.formatter.preferences.RewriteArrowSymbols
 
 object BuildSettings {
 

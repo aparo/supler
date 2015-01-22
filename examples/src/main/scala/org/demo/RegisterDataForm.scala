@@ -8,10 +8,10 @@ object RegisterDataForm {
     f.field(_.login)
       .label("Login")
       .validate(minLength(3)),
-    f.field(_.passwd)
+    f.field(_.passwd).enabled(_.login.length > 3)
       .label("Password:")
       .validate(minLength(8)),
-    f.field(_.confirmPasswd).label("Confirm password:")
+    f.field(_.confirmPasswd).label("Confirm password:").enabled(_.login.length > 3)
       .validate(custom((e, v) => v == e.passwd, (e, v) => Message("Passwords must match!")))))
 }
 

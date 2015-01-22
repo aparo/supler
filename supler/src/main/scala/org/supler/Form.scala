@@ -1,11 +1,18 @@
 package org.supler
 
+import java.util.UUID
+
 import org.json4s.JsonAST.JObject
 import org.json4s._
 import org.supler.errors._
 import org.supler.field._
 
 case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
+
+  var id: String = UUID.randomUUID().toString
+
+  var options: JValue = JObject()
+
   def apply(obj: T): FormWithObject[T] = InitialFormWithObject(this, obj, None)
 
   def withNewEmpty: FormWithObject[T] = InitialFormWithObject(this, createEmpty(), None)
@@ -14,7 +21,9 @@ case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
     rows.flatMap(_.doValidate(parentPath, obj, scope))
 
   private[supler] def generateJSON(parentPath: FieldPath, obj: T): JValue = JObject(
-    JField("fields", JObject(rows.flatMap(_.generateJSON(parentPath, obj)))))
+    JField("fields", JObject(rows.flatMap(_.generateJSON(parentPath, obj)))),
+    JField("id", JString(id)),
+    JField("options", options))
 
   private[supler] def applyJSONValues(parentPath: FieldPath, obj: T, jvalue: JValue): PartiallyAppliedObj[T] = {
     jvalue match {

@@ -24,7 +24,7 @@ object Supler extends Validators {
 
   def parentAction[T, U](action: (T, Int, U) => ActionResult[T]): U => ActionResult[U] = ActionResult.parentAction(action)
 
-  def staticField[T](createMessage: T => Message) = new StaticField[T](createMessage, None)
+  def staticField[T](createMessage: T => Message) = new StaticField[T](createMessage, None, None)
 
   def asList() = SubformListRenderHint
   def asTable() = SubformTableRenderHint
@@ -50,7 +50,7 @@ trait Supler[T] extends Validators {
 
   def parentAction[U](action: (T, Int, U) => ActionResult[T]): U => ActionResult[U] = ActionResult.parentAction(action)
 
-  def staticField(createMessage: T => Message) = new StaticField[T](createMessage, None)
+  def staticField(createMessage: T => Message) = new StaticField[T](createMessage, None, None)
 }
 
 trait Row[T] {

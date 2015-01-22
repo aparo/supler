@@ -15,7 +15,9 @@ case class BasicField[T, U](
     required: Boolean,
     transformer: FullTransformer[U, _],
     renderHint: Option[RenderHint with BasicFieldCompatible],
-    emptyValue: Option[U]) extends Field[T] with NonNestedFieldJSON[T, U] {
+    emptyValue: Option[U],
+    enabler: Option[T => Boolean]
+    ) extends Field[T] with NonNestedFieldJSON[T, U] {
 
   def label(newLabel: String): BasicField[T, U] = this.copy(label = Some(newLabel))
 
@@ -29,6 +31,11 @@ case class BasicField[T, U](
   }
 
   def emptyValue(newEmptyValue: Option[U]): BasicField[T, U] = this.copy(emptyValue = newEmptyValue)
+
+  def enabled(enableFunction: T => Boolean): BasicField[T, U] = this.enabler match {
+    case Some(_) => throw new IllegalStateException("A values enabler is already defined!")
+    case None    => this.copy(enabler = Some(enableFunction))
+  }
 
   private[supler] override def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope): List[FieldErrorMessage] = {
     val v = read(obj)

@@ -14,6 +14,7 @@ trait Field[T] extends Row[T] {
     val Multiple = "multiple"
     val Value = "value"
     val Validate = "validate"
+    val Enabled = "enabled"
     val RenderHint = "render_hint"
     val PossibleValues = "possible_values"
     val Path = "path"

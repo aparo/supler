@@ -10,7 +10,8 @@ import scala.concurrent.forkjoin.ThreadLocalRandom
 
 case class StaticField[T](
     createMessage: T => Message,
-    label: Option[String]) extends Field[T] with NonNestedFieldJSON[T, String] {
+    label: Option[String],
+    enabler: Option[T => Boolean]) extends Field[T] with NonNestedFieldJSON[T, String] {
 
   val name = "_supler_static_" + ThreadLocalRandom.current().nextInt()
   val renderHint = None

@@ -1,14 +1,14 @@
 package org.demo
 
 import akka.actor.ActorSystem
-import org.json4s.JsonAST.{JValue, JString}
+import org.json4s.JsonAST.{ JValue, JString }
 import org.supler.Supler
 import org.supler.field.ActionResult
 import spray.http.HttpHeaders._
-import spray.http.{AllOrigins, MediaTypes}
+import spray.http.{ AllOrigins, MediaTypes }
 import spray.http.StatusCodes._
 import spray.httpx.Json4sSupport
-import spray.routing.{Route, SimpleRoutingApp}
+import spray.routing.{ Route, SimpleRoutingApp }
 import Directives._
 
 object DemoServer extends App with SuplerServerSupport with Json4sSupport with DocsForm {
@@ -30,13 +30,13 @@ object DemoServer extends App with SuplerServerSupport with Json4sSupport with D
           personFormWithSave(person).generateJSON
         }
       } ~
-      post {
-        entity(as[JValue]) { jvalue =>
-          complete {
-            personFormWithSave(person).process(jvalue).generateJSON
+        post {
+          entity(as[JValue]) { jvalue =>
+            complete {
+              personFormWithSave(person).process(jvalue).generateJSON
+            }
           }
         }
-      }
     } ~ htmlJsRoutes ~ docsFormRoutes
   }
 
@@ -58,15 +58,15 @@ trait SuplerServerSupport extends SimpleRoutingApp {
     pathSuffixTest(".+\\.ts".r) { id =>
       sourceMapDirective
     } ~
-    pathPrefix("site") {
-      getFromResourceDirectory("")
-    } ~
-    pathPrefix("supler-js") {
-      suplerJsDirective
-    } ~
-    path("") {
-      redirect("/site/index.html", Found)
-    }
+      pathPrefix("site") {
+        getFromResourceDirectory("")
+      } ~
+      pathPrefix("supler-js") {
+        suplerJsDirective
+      } ~
+      path("") {
+        redirect("/site/index.html", Found)
+      }
   }
 }
 
@@ -80,17 +80,17 @@ trait DocsForm extends SimpleRoutingApp with Json4sSupport {
           docsPersonForm(aDocsPerson).generateJSON
         }
       } ~
-      post {
-        entity(as[JValue]) { jvalue =>
-          complete {
-            docsPersonForm(aDocsPerson).process(jvalue).generateJSON
+        post {
+          entity(as[JValue]) { jvalue =>
+            complete {
+              docsPersonForm(aDocsPerson).process(jvalue).generateJSON
+            }
           }
+        } ~
+        // http://stackoverflow.com/questions/1256593/jquery-why-am-i-getting-an-options-request-instead-of-a-get-request
+        options {
+          complete { "" }
         }
-      } ~
-      // http://stackoverflow.com/questions/1256593/jquery-why-am-i-getting-an-options-request-instead-of-a-get-request
-      options {
-        complete { "" }
-      }
     }
   }
 

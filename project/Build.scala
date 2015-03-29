@@ -4,6 +4,8 @@ import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._
 import sbtassembly.Plugin._
+import com.typesafe.sbt.SbtScalariform
+import com.typesafe.sbt.SbtScalariform._
 
 object BuildSettings {
   val Version = "0.4.0-SNAPSHOT"

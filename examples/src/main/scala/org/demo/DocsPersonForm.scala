@@ -13,8 +13,7 @@ object DocsPersonForm {
     f.field(_.age).label("Age").validate(gt(1), le(150)),
     f.field(_.address).label("Address"),
     f.field(_.likesChocolate).label("Do you like chocolate?"),
-    f.action("save") { p => ActionResult.custom(JString("Saved")) }.label("Save").validateAll()
-  ))
+    f.action("save") { p => ActionResult.custom(JString("Saved")) }.label("Save").validateAll()))
 
   val aDocsPerson = Person("Tyrion Lannister", 34, Some("Casterly Rock"), likesChocolate = true)
 }

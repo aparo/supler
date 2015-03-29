@@ -10,6 +10,8 @@ import org.supler.field.ActionResult
 import org.supler.transformation.StringTransformer
 
 object PersonForm {
+  val foods = List(Food("1", "Pizza"), Food("2", "Lasagne"))
+
   val carMakesAndModels = Map(
     "Ford" -> List("Ka", "Focus", "Mondeo", "Transit"),
     "Toyota" -> List("Aygo", "Yaris", "Corolla", "Auris", "Verso", "Avensis", "Rav4"),
@@ -46,6 +48,7 @@ object PersonForm {
     f.field(_.likesBroccoli).label("Likes broccoli"),
     f.field(_.address1).label("Address 1"),
     f.field(_.address2).label("Address 2"),
+    f.selectManyListField(_.favoriteFood)(id => foods.find(_.id == id).map(_.name).getOrElse("Undefined")).possibleValues(_ => foods.map(_.id)).label("Favorite Food"),
     f.selectManyField(_.favoriteColors)(identity).possibleValues(_ => List("red", "green", "blue", "magenta")).label("Favorite colors") ||
       f.selectOneField(_.gender)(identity).possibleValues(_ => List("Male", "Female")).label("Gender").renderHint(asRadio()) ||
       f.field(_.secret).label("Secret").renderHint(asPassword()),
@@ -74,6 +77,7 @@ object PersonForm {
     secret: Option[String],
     bio: Option[String],
     favoriteColors: Set[String],
+    favoriteFood: List[String],
     likesBroccoli: Boolean,
     cars: List[Car],
     legoSets: List[LegoSet],
@@ -81,6 +85,10 @@ object PersonForm {
     id: String,
     a1: String, a2: String, a3: String, a4: String, a5: String, a6: String, a7: String, a8: String, a9: String,
     a10: String, a11: String, a12: String, a13: String, a14: String, a15: String, a16: String)
+
+  case class Food(
+    id: String,
+    name: String)
 
   case class Car(
     make: String,
@@ -94,7 +102,7 @@ object PersonForm {
     age: Int)
 
   val aPerson = Person("Adam", "", new DateTime(), 10, None, None, null, None, None,
-    Set("red", "blue"), likesBroccoli = false,
+    Set("red", "blue"), Nil, likesBroccoli = false,
     List(
       Car("Ford", "Focus", 1990),
       Car("Toyota", "Avensis", 2004)),

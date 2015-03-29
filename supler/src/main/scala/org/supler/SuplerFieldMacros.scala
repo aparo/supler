@@ -83,6 +83,27 @@ object SuplerFieldMacros {
     }
   }
 
+  def selectManyListField_impl[T: c.WeakTypeTag, U: c.WeakTypeTag](c: blackbox.Context)
+                                                              (param: c.Expr[T => List[U]])(labelForValue: c.Expr[U => String]): c.Expr[AlmostSelectManyListField[T, U]] = {
+
+    import c.universe._
+
+    val (fieldName, paramRepExpr) = extractFieldName(c)(param)
+
+    val readFieldValueExpr = generateFieldRead[T, List[U]](c)(fieldName)
+
+    val classSymbol = implicitly[WeakTypeTag[T]].tpe.typeSymbol.asClass
+
+    val writeFieldValueExpr = generateFieldWrite[T, List[U]](c)(fieldName, classSymbol)
+
+    reify {
+      FactoryMethods.newAlmostSelectManyListField(paramRepExpr.splice,
+        readFieldValueExpr.splice,
+        writeFieldValueExpr.splice,
+        labelForValue.splice)
+    }
+  }
+
   def subform_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)
     (param: c.Expr[T => ContU], form: c.Expr[Form[U]])
     (container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
@@ -146,6 +167,12 @@ object SuplerFieldMacros {
       labelForValue: U => String): AlmostSelectManyField[T, U] = {
 
       new AlmostSelectManyField[T, U](fieldName, read, write, labelForValue, None)
+    }
+
+    def newAlmostSelectManyListField[T, U](fieldName: String, read: T => List[U], write: (T, List[U]) => T,
+                                       labelForValue: U => String): AlmostSelectManyListField[T, U] = {
+
+      new AlmostSelectManyListField[T, U](fieldName, read, write, labelForValue, None)
     }
   }
 

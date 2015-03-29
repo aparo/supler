@@ -38,6 +38,9 @@ object Supler extends Validators with RenderHints {
   def selectManyField[T, U](param: T => Set[U])(labelForValue: U => String): AlmostSelectManyField[T, U] =
     macro SuplerFieldMacros.selectManyField_impl[T, U]
 
+  def selectManyField[T, U](param: T => List[U])(labelForValue: U => String): AlmostSelectManyListField[T, U] =
+  macro SuplerFieldMacros.selectManyListField_impl[T, U]
+
   /**
    * A new subform field. Uses an auto-generated method to create "empty" instances of objects backing the subform,
    * which are created when applying values from a JSON object.
@@ -101,6 +104,8 @@ trait Supler[T] extends Validators {
    */
   def selectManyField[U](param: T => Set[U])(labelForValue: U => String): AlmostSelectManyField[T, U] =
     macro SuplerFieldMacros.selectManyField_impl[T, U]
+  def selectManyListField[U](param: T => List[U])(labelForValue: U => String): AlmostSelectManyListField[T, U] =
+  macro SuplerFieldMacros.selectManyListField_impl[T, U]
 
   /**
    * A new subform field. Uses an auto-generated method to create "empty" instances of objects backing the subform,

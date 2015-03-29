@@ -4,11 +4,11 @@ import org.json4s._
 import org.supler._
 import org.supler.validation._
 
-case class SelectManyField[T, U](
+case class SelectManyListField[T, U](
   name: String,
-  read: T => Set[U],
-  write: (T, Set[U]) => T,
-  validators: List[Validator[T, Set[U]]],
+  read: T => List[U],
+  write: (T, List[U]) => T,
+  validators: List[Validator[T, List[U]]],
   valuesProvider: ValuesProvider[T, U],
   label: Option[String],
   labelForValue: U => String,
@@ -16,17 +16,17 @@ case class SelectManyField[T, U](
   idForValue: Option[U => String],
   renderHint: Option[RenderHint with SelectManyFieldCompatible],
   enabledIf: T => Boolean,
-  includeIf: T => Boolean) extends Field[T] with SelectField[T, U] with ValidateWithValidators[T, Set[U]] {
+  includeIf: T => Boolean) extends Field[T] with SelectField[T, U] with ValidateWithValidators[T, List[U]] {
 
-  def label(newLabel: String): SelectManyField[T, U] = this.copy(label = Some(newLabel))
-  def description(newDescription: String): SelectManyField[T, U] = this.copy(description = Some(newDescription))
-  def validate(validators: Validator[T, Set[U]]*): SelectManyField[T, U] = this.copy(validators = this.validators ++ validators)
-  def renderHint(newRenderHint: RenderHint with SelectManyFieldCompatible): SelectManyField[T, U] = this.copy(renderHint = Some(newRenderHint))
+  def label(newLabel: String): SelectManyListField[T, U] = this.copy(label = Some(newLabel))
+  def description(newDescription: String): SelectManyListField[T, U] = this.copy(description = Some(newDescription))
+  def validate(validators: Validator[T, List[U]]*): SelectManyListField[T, U] = this.copy(validators = this.validators ++ validators)
+  def renderHint(newRenderHint: RenderHint with SelectManyFieldCompatible): SelectManyListField[T, U] = this.copy(renderHint = Some(newRenderHint))
 
-  def enabledIf(condition: T => Boolean): SelectManyField[T, U] = this.copy(enabledIf = condition)
-  def includeIf(condition: T => Boolean): SelectManyField[T, U] = this.copy(includeIf = condition)
+  def enabledIf(condition: T => Boolean): SelectManyListField[T, U] = this.copy(enabledIf = condition)
+  def includeIf(condition: T => Boolean): SelectManyListField[T, U] = this.copy(includeIf = condition)
 
-  def idForValue[I](idFn: U => I)(implicit idTransformer: SelectValueIdSerializer[I]): SelectManyField[T, U] =
+  def idForValue[I](idFn: U => I)(implicit idTransformer: SelectValueIdSerializer[I]): SelectManyListField[T, U] =
     this.copy(idForValue = Some(idFn andThen idTransformer.toString))
 
   override def emptyValue = None
@@ -53,19 +53,19 @@ case class SelectManyField[T, U](
       value <- valueFromId(possibleValues, id)
     } yield value
 
-    full(write(obj, values.toSet))
+    full(write(obj, values.toList))
   }
 }
 
-class AlmostSelectManyField[T, U](
+class AlmostSelectManyListField[T, U](
   name: String,
-  read: T => Set[U],
-  write: (T, Set[U]) => T,
+  read: T => List[U],
+  write: (T, List[U]) => T,
   labelForValue: U => String,
   renderHint: Option[RenderHint with SelectManyFieldCompatible]) {
 
-  def possibleValues(valuesProvider: ValuesProvider[T, U]): SelectManyField[T, U] =
-    SelectManyField(name, read, write, Nil, valuesProvider, None, labelForValue, None, None, renderHint,
+  def possibleValues(valuesProvider: ValuesProvider[T, U]): SelectManyListField[T, U] =
+    SelectManyListField(name, read, write, Nil, valuesProvider, None, labelForValue, None, None, renderHint,
       AlwaysCondition, AlwaysCondition)
 }
 

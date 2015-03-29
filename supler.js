@@ -139,9 +139,6 @@ var Supler;
                 'supler:validationId': fieldData.validationId,
                 'supler:path': fieldData.path
             }, renderOptions.additionalFieldOptions());
-            if (!fieldData.enabled) {
-                fieldOptions['disabled'] = true;
-            }
             switch (fieldData.type) {
                 case Supler.FieldTypes.BOOLEAN:
                     return this.booleanFieldFromJson(renderOptions, fieldData, fieldOptions, compact);

@@ -1,8 +1,8 @@
 describe('form validation', function() {
   it('should run client-side validation and add errors', function() {
     // given
-    var sf = new SuplerForm(container);
-    sf.render(simple1.form1);
+    var sf = new Supler.Form(container);
+    sf.render(data.simple1.form3invalid);
     byName('field1').val('');
 
     // when
@@ -20,12 +20,12 @@ describe('form validation', function() {
 
   it('should run client-side validation and not add errors if the validation scope is none', function() {
     // given
-    var sf = new SuplerForm(container);
-    sf.render(simple1.form1);
+    var sf = new Supler.Form(container);
+    sf.render(data.simple1.form3invalid);
     byName('field1').val('');
 
     // when
-    var validationResult = sf.validate(ValidateNone);
+    var validationResult = sf.validate(Supler.ValidateNone);
 
     // then
     validationResult.should.equal(false);
@@ -33,8 +33,8 @@ describe('form validation', function() {
 
   it('should run client-side validation and return false if there are none', function() {
     // given
-    var sf = new SuplerForm(container);
-    sf.render(simple1.form1);
+    var sf = new Supler.Form(container);
+    sf.render(data.simple1.form3invalid);
 
     // when
     byName('field3').val(11);
@@ -49,26 +49,26 @@ describe('form validation', function() {
 
   it('should render with server-side errors', function() {
     // given
-    var sf = new SuplerForm(container);
+    var sf = new Supler.Form(container);
 
     // when
-    sf.render(simple1.form1validated);
+    sf.render(data.simple1.form3invalidValidated);
 
     // then
     var validationElement = validationElementByName('field3');
     validationElement.innerText.should.have.length.above(0);
   });
 
-  it('should preserve client-side validation for fields with unchanged values after send', function() {
+  it('should re-run client-side validation for fields with unchanged values after send', function() {
     // given
     var sendFormFn = function sendForm(formValue, renderResponseFn, sendErrorFn, isAction, triggeringElement) {
-      renderResponseFn(simple1.form1);
+      renderResponseFn(data.simple1.form3invalid);
     };
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendFormFn
     });
-    sf.render(simple1.form1);
+    sf.render(data.simple1.form3invalid);
 
     // when
     var validationResult = sf.validate();
@@ -81,16 +81,16 @@ describe('form validation', function() {
     validationElement.innerText.should.have.length.above(0);
   });
 
-  it('should not preserve client-side validation for fields with changed values after send', function() {
+  it('should re-run client-side validation for fields with changed values after send and not add errors', function() {
     // given
     var sendFormFn = function sendForm(formValue, renderResponseFn, sendErrorFn, isAction, triggeringElement) {
-      renderResponseFn(simple1.form2); // field3 is changed
+      renderResponseFn(data.simple1.form2); // field3 is changed
     };
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendFormFn
     });
-    sf.render(simple1.form1);
+    sf.render(data.simple1.form3invalid);
 
     // when
     var validationResult = sf.validate();
@@ -105,8 +105,8 @@ describe('form validation', function() {
 
   it('should validate fields in subforms list', function() {
     // given
-    var sf = new SuplerForm(container);
-    sf.render(complex1.form1list);
+    var sf = new Supler.Form(container);
+    sf.render(data.complexSubformsList.formListNonEmpty);
 
     // when
     byName('simples[0].field1').val('');
@@ -131,14 +131,14 @@ describe('form validation', function() {
 
   it('should validate only the subform if the validation scope specifies so', function() {
     // given
-    var sf = new SuplerForm(container);
-    sf.render(complex1.form1list);
+    var sf = new Supler.Form(container);
+    sf.render(data.complexSubformsList.formListNonEmpty);
 
     // when
     byName('field10').val('');
     byName('simples[0].field1').val('');
     byName('simples[1].field1').val('');
-    var validationResult = sf.validate(new ValidateInPath('simples[1]'));
+    var validationResult = sf.validate(new Supler.ValidateInPath('simples[1]'));
 
     // then
     validationResult.should.equal(true);
@@ -155,8 +155,8 @@ describe('form validation', function() {
 
   it('should validate fields in a single subform', function() {
     // given
-    var sf = new SuplerForm(container);
-    sf.render(complex2.form1);
+    var sf = new Supler.Form(container);
+    sf.render(data.complexSingleSubform.form1);
 
     // when
     byName('simple.field1').val('');
@@ -172,4 +172,59 @@ describe('form validation', function() {
     var validationElement23 = validationElementByName('simple.field3');
     validationElement23.innerText.should.not.have.length(0);
   });
+
+  it('should validate optional string fields', function() {
+    // given
+    var sf = new Supler.Form(container);
+
+    // when
+    sf.render(data.validateIfDefinedOpt.stringOkSome);
+    var validationResultStringOkSome = sf.validate();
+
+    sf.render(data.validateIfDefinedOpt.stringOkNone);
+    var validationResultStringOkNone = sf.validate();
+
+    sf.render(data.validateIfDefinedOpt.stringError);
+    var validationResultStringError = sf.validate();
+
+    // then
+    validationResultStringOkSome.should.equal(false);
+    validationResultStringOkNone.should.equal(false);
+    validationResultStringError.should.equal(true);
+  });
+
+  it('should validate optional int fields', function() {
+    // given
+    var sf = new Supler.Form(container);
+
+    // when
+    sf.render(data.validateIfDefinedOpt.intOkSome);
+    var validationResultIntOkSome = sf.validate();
+
+    sf.render(data.validateIfDefinedOpt.intOkNone);
+    var validationResultIntOkNone = sf.validate();
+
+    sf.render(data.validateIfDefinedOpt.intError);
+    var validationResultIntError = sf.validate();
+
+    // then
+    validationResultIntOkSome.should.equal(false);
+    validationResultIntOkNone.should.equal(false);
+    validationResultIntError.should.equal(true);
+  });
+
+  it('should validate all types of numeric fields', function() {
+    var sf = new Supler.Form(container);
+
+    sf.render(data.validateNumbers.formOk);
+    sf.validate().should.equal(false);
+
+    sf.render(data.validateNumbers.formError);
+    sf.validate().should.equal(true);
+
+    validationElementByName('f1').innerText.should.not.have.length(0);
+    validationElementByName('f2').innerText.should.not.have.length(0);
+    validationElementByName('f3').innerText.should.not.have.length(0);
+    validationElementByName('f4').innerText.should.not.have.length(0);
+  })
 });

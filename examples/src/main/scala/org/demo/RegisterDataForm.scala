@@ -1,6 +1,6 @@
 package org.demo
 
-import org.supler.{ Message, Supler }
+import org.supler.{Message, Supler}
 import Supler._
 
 object RegisterDataForm {
@@ -8,11 +8,12 @@ object RegisterDataForm {
     f.field(_.login)
       .label("Login")
       .validate(minLength(3)),
-    f.field(_.passwd).enabled(_.login.length > 3)
+    f.field(_.passwd)
       .label("Password:")
       .validate(minLength(8)),
-    f.field(_.confirmPasswd).label("Confirm password:").enabled(_.login.length > 3)
-      .validate(custom((e, v) => v == e.passwd, (e, v) => Message("Passwords must match!")))))
+    f.field(_.confirmPasswd).label("Confirm password:")
+      .validate(custom((v, e) => v == e.passwd, (v, e) => Message("Passwords must match!")))
+  ))
 }
 
 class RegisterData(

@@ -22,11 +22,19 @@
 
   <!-- Test data -->
   <script src="generated/simple1.js"></script>
-  <script src="generated/simple1action.js"></script>
-  <script src="generated/select1.js"></script>
-  <script src="generated/complex1.js"></script>
-  <script src="generated/complex2.js"></script>
-  <script src="generated/complex3.js"></script>
+  <script src="generated/simpleDate.js"></script>
+  <script src="generated/simpleWithMeta.js"></script>
+  <script src="generated/simple1rows.js"></script>
+  <script src="generated/actionSimple.js"></script>
+  <script src="generated/selectSingle.js"></script>
+  <script src="generated/complexSubformsList.js"></script>
+  <script src="generated/complexSingleSubform.js"></script>
+  <script src="generated/complexOptionalSubform.js"></script>
+  <script src="generated/conditional.js"></script>
+  <script src="generated/validateIfDefinedOpt.js"></script>
+  <script src="generated/optionalInt.js"></script>
+  <script src="generated/validateNumbers.js"></script>
+  <script src="generated/complexObject.js"></script>
 
   <!-- Tests -->
   <script src="common.js"></script>
@@ -34,8 +42,13 @@
   <script src="formValidationTests.js"></script>
   <script src="selectSingleTests.js"></script>
   <script src="sendTests.js"></script>
-  <script src="customData.js"></script>
-  <script src="templates.js"></script>
+  <script src="customDataTests.js"></script>
+  <script src="customizeRenderTests.js"></script>
+  <script src="conditionalTests.js"></script>
+  <script src="frontendRenderHintTests.js"></script>
+  <script src="fieldMatcherTests.js"></script>
+  <script src="fieldOrderTests.js"></script>
+  <script src="complexFieldTest.js"></script>
 
   <script>
     // Only tests run in real browser, injected script run if options.run == true
@@ -51,9 +64,25 @@
   </div>
 
   <div id="templates_oneinput_button" style="visibility: hidden;">
-    <div supler:fieldInputTemplate supler:fieldPath="inc">
+    <div supler:fieldInputTemplate supler:fieldPath="addx">
       <button {{suplerFieldInputAttrs}} customattr="custombutton">Press me</button>
     </div>
+  </div>
+
+  <div id="templates_oneinput_boolean" style="visibility: hidden;">
+    <div supler:fieldInputTemplate
+         supler:fieldPath="field4"
+         supler:singleInput="false"
+         supler:selectedAttrName="checked"
+         supler:selectedAttrValue="checked">
+
+      <div {{suplerFieldInputContainerAttrs}}>
+            <span supler:possibleValueTemplate>
+                <label>
+                  <input type="radio" {{suplerFieldInputAttrs}} customattr="y"> {{suplerFieldInputLabel}}
+                </label>
+            </span>
+        </d
   </div>
 </body>
 </html>

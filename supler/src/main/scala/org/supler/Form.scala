@@ -4,31 +4,33 @@ import java.util.UUID
 
 import org.json4s.JsonAST.JObject
 import org.json4s._
-import org.supler.errors._
 import org.supler.field._
+import org.supler.validation._
 
 case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
+  requireFieldsUnique()
 
-  var id: String = UUID.randomUUID().toString
+  def apply(obj: T): FormWithObject[T] = InitialFormWithObject(this, obj, None, FormMeta(Map()))
 
-  var options: JValue = JObject()
+  def withNewEmpty: FormWithObject[T] = InitialFormWithObject(this, createEmpty(), None, FormMeta(Map()))
 
-  def apply(obj: T): FormWithObject[T] = InitialFormWithObject(this, obj, None)
-
-  def withNewEmpty: FormWithObject[T] = InitialFormWithObject(this, createEmpty(), None)
+  def getMeta(jvalue: JValue): FormMeta = FormMeta.fromJSON(jvalue)
 
   private[supler] def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope): FieldErrors =
     rows.flatMap(_.doValidate(parentPath, obj, scope))
 
-  private[supler] def generateJSON(parentPath: FieldPath, obj: T): JValue = JObject(
-    JField("fields", JObject(rows.flatMap(_.generateJSON(parentPath, obj)))),
-    JField("id", JString(id)),
-    JField("options", options))
+  private[supler] def generateJSON(parentPath: FieldPath, obj: T): JValue = {
+    val rowsJSONs = rows.map(_.generateJSON(parentPath, obj))
+    JObject(
+      JField("fields", JArray(rowsJSONs.flatMap(_.fields))),
+      JField("fieldOrder", JArray(rowsJSONs.map(_.fieldOrderAsJSON)))
+  )
+  }
 
   private[supler] def applyJSONValues(parentPath: FieldPath, obj: T, jvalue: JValue): PartiallyAppliedObj[T] = {
     jvalue match {
       case JObject(jsonFields) => Row.applyJSONValues(rows, parentPath, obj, jsonFields.toMap)
-      case _                   => PartiallyAppliedObj.full(obj)
+      case _ => PartiallyAppliedObj.full(obj)
     }
   }
 
@@ -40,8 +42,19 @@ case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
   private[supler] def findAction(parentPath: FieldPath, obj: T, jvalue: JValue, ctx: RunActionContext): Option[RunnableAction] = {
     jvalue match {
       case JObject(jsonFields) => Row.findFirstAction(parentPath, rows, obj, jsonFields.toMap, ctx)
-      case _                   => None
+      case _ => None
     }
+  }
+
+  private def requireFieldsUnique() {
+    val fieldsUsedMultipletimes = rows.flatMap {
+      case MultiFieldRow(fields) => fields
+      case f: Field[_] => List(f)
+      case _ => Nil
+    }.groupBy(f => f.name).filter(_._2.size > 1).map(_._1)
+
+    require(fieldsUsedMultipletimes.isEmpty,
+      "Supler does not support same field multiple times on a form, but those were used: "+fieldsUsedMultipletimes.mkString(", "))
   }
 
   def useCreateEmpty(newCreateEmpty: => T) = this.copy(createEmpty = () => newCreateEmpty)

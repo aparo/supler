@@ -1,37 +1,27 @@
 package org.supler.transformation
 
-trait Transformer[U, S] {
-  def serialize(u: U): S
-  def deserialize(s: S): Either[String, U]
-}
+import org.json4s.JValue
+import org.supler.field.{BasicFieldCompatible, RenderHint}
 
-// convenience traits for extension by custom transformers; one for each of the types which have a json transformer
-trait StringTransformer[U] extends Transformer[U, String]
-trait IntTransformer[U] extends Transformer[U, Int]
-trait LongTransformer[U] extends Transformer[U, Long]
-trait FloatTransformer[U] extends Transformer[U, Float]
-trait DoubleTransformer[U] extends Transformer[U, Double]
-trait BooleanTransformer[U] extends Transformer[U, Boolean]
+class Transformer[U, S](basicTypeTransformer: BasicTypeTransformer[U, S], jsonTransformer: JsonTransformer[S]) {
+  def serialize(u: U): Option[JValue] = jsonTransformer.toJValueOrJNull(basicTypeTransformer.serialize(u))
+
+  def deserialize(jvalue: JValue): Either[String, U] = for {
+    s <- jsonTransformer.fromJValue(jvalue).toRight("cannot convert json value").right
+    u <- basicTypeTransformer.deserialize(s).right
+  } yield u
+
+  def typeName = jsonTransformer.typeName
+
+  def renderHint: Option[RenderHint with BasicFieldCompatible] = basicTypeTransformer.renderHint
+  }
 
 object Transformer {
-  trait IdentityTransformer[U] extends Transformer[U, U] {
-    override def serialize(u: U) = u
-    override def deserialize(u: U) = Right(u)
-  }
+  implicit def createFromBasicAndJson[U, S](
+    implicit basicTypeTransformer: BasicTypeTransformer[U, S], jsonTransformer: JsonTransformer[S]): Transformer[U, S] =
+    new Transformer[U, S](basicTypeTransformer, jsonTransformer)
 
-  // if the type has a corresponding json transformer, no need to transform further
-  implicit object StringIdTransformer extends IdentityTransformer[String]
-  implicit object IntIdTransformer extends IdentityTransformer[Int]
-  implicit object LongIdTransformer extends IdentityTransformer[Long]
-  implicit object FloatIdTransformer extends IdentityTransformer[Float]
-  implicit object DoubleIdTransformer extends IdentityTransformer[Double]
-  implicit object BooleanIdTransformer extends IdentityTransformer[Boolean]
-
-  implicit def optionTransformer[U, S](implicit base: Transformer[U, S]) = new Transformer[Option[U], Option[S]] {
-    override def serialize(u: Option[U]) = u.map(base.serialize)
-    override def deserialize(s: Option[S]) = s.map(base.deserialize) match {
-      case None    => Right(None)
-      case Some(d) => d.right.map(Some(_))
-    }
-  }
+  implicit def createFromJson[S](
+    implicit jsonTransformer: JsonTransformer[S]): Transformer[S, S] =
+    new Transformer[S, S](new BasicTypeTransformer.IdentityTransformer[S] {}, jsonTransformer)
 }

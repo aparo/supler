@@ -2,7 +2,7 @@ describe('send', function(){
   it('should refresh after field change', function(done) {
     // given
     var sendFormFn = function sendForm(formValue, renderResponseFn, sendErrorFn, isAction, triggeringElement) {
-      renderResponseFn(simple1.form2);
+      renderResponseFn(data.simple1.form2);
 
       // then
       byName('field1').val().should.equal('v1');
@@ -12,12 +12,12 @@ describe('send', function(){
       done();
     };
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendFormFn
     });
 
     // when
-    sf.render(simple1.form1);
+    sf.render(data.simple1.form1);
     byName('field1').change();
 
     // then in callback
@@ -43,12 +43,12 @@ describe('send', function(){
       }
     }
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendForm
     });
 
     // when & then
-    sf.render(simple1.form1);
+    sf.render(data.simple1.form1);
     byName('field3').val(20);
 
     byName('field3').change();
@@ -58,11 +58,11 @@ describe('send', function(){
     state.should.equal(3);
 
     // first request completes, but another is started -> results should not be applied
-    renderResponseFn1(simple1.form2);
+    renderResponseFn1(data.simple1.form2);
     byName('field3').val().should.not.equal('15');
 
     // second request completes, results should be applied
-    renderResponseFn2(simple1.form2);
+    renderResponseFn2(data.simple1.form2);
     byName('field3').val().should.equal('15');
   });
 
@@ -80,23 +80,23 @@ describe('send', function(){
       }
     }
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendForm
     });
 
     // when & then
-    sf.render(simple1action.form1);
+    sf.render(data.actionSimple.formOneActionValidateNone);
 
-    byName('inc').click();
+    byName('addx').click();
     state.should.equal(2);
 
-    byName('field3').val(1);
-    byName('field3').change();
+    byName('f1').val('w');
+    byName('f1').change();
     state = 3;
 
     // first request completes, but another is started -> results should not be applied
-    actionRenderResponseFn(simple1action.form2);
-    byName('field3').val().should.equal('15');
+    actionRenderResponseFn(data.actionSimple.formOneActionValidateNone2);
+    byName('f1').val().should.equal('u');
   });
 
   it('should drop actions when an action is in progress', function() {
@@ -115,21 +115,21 @@ describe('send', function(){
       }
     }
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendForm
     });
 
     // when & then
-    sf.render(simple1action.form1);
+    sf.render(data.actionSimple.formOneActionValidateNone);
 
-    byName('inc').click();
+    byName('addx').click();
     state.should.equal(2);
 
-    byName('inc').click();
+    byName('addx').click();
     state.should.equal(2);
 
     // first action completes, second should be started.
-    actionRenderResponseFn1(simple1action.form2);
+    actionRenderResponseFn1(data.actionSimple.formOneActionValidateNone2);
     state.should.equal(2);
   });
 
@@ -151,13 +151,12 @@ describe('send', function(){
       }
     }
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendForm
     });
 
     // when & then
-    sf.render(simple1.form1);
-    byName('field3').val(20);
+    sf.render(data.simple1.form1);
 
     byName('field3').change();
     state.should.equal(2);
@@ -165,7 +164,7 @@ describe('send', function(){
 
     byName('field3').change();
     state.should.equal(3);
-    renderResponseFn2(simple1.form2);
+    renderResponseFn2(data.simple1.form2);
 
     byName('field3').val().should.equal('15');
   });
@@ -176,17 +175,17 @@ describe('send', function(){
       assert.fail(0, state, 'Should not send the form');
     };
 
-    var sf = new SuplerForm(container, {
+    var sf = new Supler.Form(container, {
       send_form_function: sendFormFn
     });
 
     // when
-    sf.render(simple1action.form1two);
-    byName('field1').val('');
-    byName('save').click();
+    sf.render(data.actionSimple.formTwoActionsOneValidateAll);
+    byName('f1').val('');
+    byName('addy').click();
 
     // then
-    var validationElement1 = validationElementByName('field1');
+    var validationElement1 = validationElementByName('f1');
     validationElement1.innerText.should.not.have.length(0);
   });
 });

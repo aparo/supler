@@ -1,38 +1,45 @@
 package org.supler.field
 
 import org.json4s._
-import org.json4s.JsonAST.{ JObject, JField }
+import org.json4s.JsonAST.{JObject, JField}
 import org.supler.FieldPath
-import org.supler.errors._
+import org.supler.validation._
 
 case class ActionField[T](
-    name: String,
-    action: T => ActionResult[T],
-    label: Option[String],
-    actionValidationScope: ActionValidationScope) extends Field[T] {
+  name: String,
+  action: T => ActionResult[T],
+  label: Option[String],
+  description: Option[String],
+  actionValidationScope: ActionValidationScope,
+  enabledIf: T => Boolean,
+  includeIf: T => Boolean) extends Field[T] {
 
   require(name.matches("\\w+"), "Action name must contain only word characters (letters, numbers, _)")
 
   def label(newLabel: String): ActionField[T] = this.copy(label = Some(newLabel))
+  def description(newDescription: String): ActionField[T] = this.copy(description = Some(newDescription))
 
-  def validateNone() = this.copy(actionValidationScope = BeforeActionValidateNone)
-  def validateAll() = this.copy(actionValidationScope = BeforeActionValidateAll)
-  def validateSubform() = this.copy(actionValidationScope = BeforeActionValidateSubform)
+  def validateNone(): ActionField[T] = this.copy(actionValidationScope = BeforeActionValidateNone)
+  def validateAll(): ActionField[T] = this.copy(actionValidationScope = BeforeActionValidateAll)
+  def validateSubform(): ActionField[T] = this.copy(actionValidationScope = BeforeActionValidateSubform)
 
-  private[supler] override def generateJSON(parentPath: FieldPath, obj: T) = {
+  def enabledIf(condition: T => Boolean): ActionField[T] = this.copy(enabledIf = condition)
+  def includeIf(condition: T => Boolean): ActionField[T] = this.copy(includeIf = condition)
+
+  private[supler] override def generateFieldJSON(parentPath: FieldPath, obj: T) = {
     import JSONFieldNames._
 
     val validationScopeJSONData = actionValidationScope.toValidationScope(parentPath).generateJSONData
     val validationScopeJSON = JObject(JField("name", JString(validationScopeJSONData.name)) :: validationScopeJSONData.extra)
 
-    List(JField(name, JObject(List(
-      JField(Label, JString(label.getOrElse(""))),
+    JObject(List(
       JField(Type, JString(SpecialFieldTypes.Action)),
       JField(Path, JString(parentPath.append(name).toString)),
-      JField("validation_scope", validationScopeJSON)))))
+      JField("validation_scope", validationScopeJSON)
+    ))
   }
 
-  private[supler] override def applyJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]) =
+  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]) =
     PartiallyAppliedObj.full(obj)
 
   private[supler] override def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope) = Nil
@@ -42,7 +49,8 @@ case class ActionField[T](
       Some(RunnableAction(
         parentPath.append(name),
         actionValidationScope.toValidationScope(parentPath),
-        () => action(obj).completeWith(ctx)))
+        () => action(obj).completeWith(ctx)
+      ))
     } else {
       None
     }
@@ -70,9 +78,8 @@ object ActionResult {
 
 private[supler] case class FullResult[U](result: U, customData: Option[JValue]) extends ActionResult[U] {
   private[supler] override def completeWith(ctx: RunActionContext): CompleteActionResult = {
-    val lastResult = ctx.parentsStack.foldLeft[Any](result) {
-      case (r, (_, _, parentUpdate)) =>
-        parentUpdate.asInstanceOf[Any => Any](r)
+    val lastResult = ctx.parentsStack.foldLeft[Any](result) { case (r, (_, _, parentUpdate)) =>
+      parentUpdate.asInstanceOf[Any => Any](r)
     }
 
     FullCompleteActionResult(lastResult, customData)

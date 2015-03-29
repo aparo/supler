@@ -24,6 +24,7 @@ project/plugins/project/
 .idea_modules
 
 **/node_modules
-supler.js
 
 .DS_Store
+
+.run.central.synchro.sh

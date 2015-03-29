@@ -1,7 +1,7 @@
 package org.supler
 
 import org.scalatest._
-import org.supler.errors.{ ValidateInPath, ValidateNone, ValidateFilled, ValidateAll }
+import org.supler.validation._
 import Supler._
 
 class SuplerValidationTest extends FlatSpec with ShouldMatchers {
@@ -25,25 +25,25 @@ class SuplerValidationTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta._
 
-    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
-    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be(1)
-    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be(1)
+    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
+    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be (1)
+    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be (1)
 
-    f2Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
-    f2Field.doValidate(EmptyPath, p2, ValidateAll).size should be(0)
-    f2Field.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
+    f2Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
+    f2Field.doValidate(EmptyPath, p2, ValidateAll).size should be (0)
+    f2Field.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
 
-    f3Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
-    f3Field.doValidate(EmptyPath, p2, ValidateAll).size should be(1)
-    f3Field.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
+    f3Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
+    f3Field.doValidate(EmptyPath, p2, ValidateAll).size should be (1)
+    f3Field.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
 
-    f3Field2.doValidate(EmptyPath, p1, ValidateAll).size should be(1)
-    f3Field2.doValidate(EmptyPath, p2, ValidateAll).size should be(0)
-    f3Field2.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
+    f3Field2.doValidate(EmptyPath, p1, ValidateAll).size should be (1)
+    f3Field2.doValidate(EmptyPath, p2, ValidateAll).size should be (0)
+    f3Field2.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
 
-    f4Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
-    f4Field.doValidate(EmptyPath, p2, ValidateAll).size should be(0)
-    f4Field.doValidate(EmptyPath, p3, ValidateAll).size should be(0)
+    f4Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
+    f4Field.doValidate(EmptyPath, p2, ValidateAll).size should be (0)
+    f4Field.doValidate(EmptyPath, p3, ValidateAll).size should be (0)
   }
 
   "field" should "not validate empty values if validating only filled" in {
@@ -63,15 +63,15 @@ class SuplerValidationTest extends FlatSpec with ShouldMatchers {
     // then
     import PersonMeta._
 
-    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be(0)
-    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be(1)
-    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be(2)
-    f1Field.doValidate(EmptyPath, p4, ValidateAll).size should be(1)
+    f1Field.doValidate(EmptyPath, p1, ValidateAll).size should be (0)
+    f1Field.doValidate(EmptyPath, p2, ValidateAll).size should be (1)
+    f1Field.doValidate(EmptyPath, p3, ValidateAll).size should be (2)
+    f1Field.doValidate(EmptyPath, p4, ValidateAll).size should be (1)
 
-    f1Field.doValidate(EmptyPath, p1, ValidateFilled).size should be(0)
-    f1Field.doValidate(EmptyPath, p2, ValidateFilled).size should be(1)
-    f1Field.doValidate(EmptyPath, p3, ValidateFilled).size should be(0)
-    f1Field.doValidate(EmptyPath, p4, ValidateFilled).size should be(0)
+    f1Field.doValidate(EmptyPath, p1, ValidateFilled).size should be (0)
+    f1Field.doValidate(EmptyPath, p2, ValidateFilled).size should be (1)
+    f1Field.doValidate(EmptyPath, p3, ValidateFilled).size should be (0)
+    f1Field.doValidate(EmptyPath, p4, ValidateFilled).size should be (0)
   }
 
   "form" should "validate the specified form fragment" in {
@@ -82,35 +82,96 @@ class SuplerValidationTest extends FlatSpec with ShouldMatchers {
     val personForm = form[Person](f => List(f.field(_.size).validate(gt(0))))
     val cityForm = form[City](f => List(
       f.field(_.name),
-      f.subform(_.people, personForm)))
+      f.subform(_.people, personForm)
+    ))
 
     val c1 = City("city1", List(Person(10), Person(20)))
     val c2 = City("city2", List(Person(-10)))
     val c3 = City("", List(Person(20), Person(-10), Person(0)))
 
     // when
-    cityForm.doValidate(EmptyPath, c1, ValidateAll).size should be(0)
-    cityForm.doValidate(EmptyPath, c2, ValidateAll).size should be(1)
-    cityForm.doValidate(EmptyPath, c3, ValidateAll).size should be(4)
+    cityForm.doValidate(EmptyPath, c1, ValidateAll).size should be (0)
+    cityForm.doValidate(EmptyPath, c2, ValidateAll).size should be (1)
+    cityForm.doValidate(EmptyPath, c3, ValidateAll).size should be (4)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateFilled).size should be(0)
-    cityForm.doValidate(EmptyPath, c2, ValidateFilled).size should be(1)
-    cityForm.doValidate(EmptyPath, c3, ValidateFilled).size should be(1)
+    cityForm.doValidate(EmptyPath, c1, ValidateFilled).size should be (0)
+    cityForm.doValidate(EmptyPath, c2, ValidateFilled).size should be (1)
+    cityForm.doValidate(EmptyPath, c3, ValidateFilled).size should be (1)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateNone).size should be(0)
-    cityForm.doValidate(EmptyPath, c2, ValidateNone).size should be(0)
-    cityForm.doValidate(EmptyPath, c3, ValidateNone).size should be(0)
+    cityForm.doValidate(EmptyPath, c1, ValidateNone).size should be (0)
+    cityForm.doValidate(EmptyPath, c2, ValidateNone).size should be (0)
+    cityForm.doValidate(EmptyPath, c3, ValidateNone).size should be (0)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath)).size should be(0)
-    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath)).size should be(1)
-    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath)).size should be(4)
+    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath)).size should be (0)
+    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath)).size should be (1)
+    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath)).size should be (4)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.append("people"))).size should be(0)
-    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.append("people"))).size should be(1)
-    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.append("people"))).size should be(3)
+    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.append("people"))).size should be (0)
+    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.append("people"))).size should be (1)
+    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.append("people"))).size should be (3)
 
-    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be(0)
-    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be(0)
-    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be(1)
+    cityForm.doValidate(EmptyPath, c1, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be (0)
+    cityForm.doValidate(EmptyPath, c2, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be (0)
+    cityForm.doValidate(EmptyPath, c3, ValidateInPath(EmptyPath.appendWithIndex("people", 1))).size should be (1)
+  }
+
+  "field" should "validate an optional string field only if the field has a value" in {
+    // given
+    case class Data(f: Option[String])
+
+    val dataOkSome = Data(Some("abcde"))
+    val dataError = Data(Some("ab"))
+    val dataOkNone = Data(None)
+
+    // when
+    object DataMeta extends Supler[Data] {
+      val field1 = field(_.f).validate(ifDefined(minLength(3)))
+    }
+
+    // then
+    import DataMeta._
+
+    field1.doValidate(EmptyPath, dataOkSome, ValidateAll).size should be (0)
+    field1.doValidate(EmptyPath, dataError, ValidateAll).size should be (1)
+    field1.doValidate(EmptyPath, dataOkNone, ValidateAll).size should be (0)
+  }
+
+  "field" should "validate ints, longs, doubles and floats" in {
+    // given
+    case class IntData(f1: Int)
+    case class LongData(f1: Long)
+    case class DoubleData(f1: Double)
+    case class FloatData(f1: Float)
+
+    val intDataOk = IntData(20)
+    val intDataError = IntData(5)
+
+    val longDataOk = LongData(20L)
+    val longDataError = LongData(5L)
+
+    val doubleDataOk = DoubleData(10.3d)
+    val doubleDataError = DoubleData(10.1d)
+
+    val floatDataOk = FloatData(10.3f)
+    val floatDataError = FloatData(10.1f)
+
+    // when
+    val intForm = form[IntData](f => List(f.field(_.f1).validate(gt(10))))
+    val longForm = form[LongData](f => List(f.field(_.f1).validate(gt(10L))))
+    val doubleForm = form[DoubleData](f => List(f.field(_.f1).validate(gt(10.2d))))
+    val floatForm = form[FloatData](f => List(f.field(_.f1).validate(gt(10.2f))))
+
+    // then
+    intForm(intDataOk).doValidate().errors.size should be (0)
+    intForm(intDataError).doValidate().errors.size should be (1)
+
+    longForm(longDataOk).doValidate().errors.size should be (0)
+    longForm(longDataError).doValidate().errors.size should be (1)
+
+    doubleForm(doubleDataOk).doValidate().errors.size should be (0)
+    doubleForm(doubleDataError).doValidate().errors.size should be (1)
+
+    floatForm(floatDataOk).doValidate().errors.size should be (0)
+    floatForm(floatDataError).doValidate().errors.size should be (1)
   }
 }

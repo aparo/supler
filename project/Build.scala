@@ -1,27 +1,28 @@
+import bintray.Plugin.bintraySettings
+import bintray.Keys._
 import sbt.Keys._
 import sbt._
+import sbtassembly.Plugin.AssemblyKeys._
 import sbtassembly.Plugin._
-import AssemblyKeys._
-import com.typesafe.sbt.SbtScalariform
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
 object BuildSettings {
+  val Version = "0.4.0-SNAPSHOT"
 
-
-  val buildSettings = Defaults.coreDefaultSettings ++ Seq(
-    organization := "com.softwaremill",
-    version := "0.1.0",
-    scalaVersion := "2.11.4",
+  val buildSettings = Defaults.coreDefaultSettings ++ (
+    if (Version.endsWith("-SNAPSHOT"))
+      Seq(
+        publishTo := Some("Artifactory Realm" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"),
+        credentials := Credentials(Path.userHome / ".bintray" / ".artifactory") :: Nil
+      )
+    else bintraySettings ++
+      Seq(
+        bintrayOrganization in bintray := Some("softwaremill"),
+        repository in bintray := "softwaremill")
+    ) ++ Seq(
+    organization := "com.softwaremill.supler",
+    version := Version,
+    scalaVersion := "2.11.6",
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:existentials", "-language:higherKinds"),
-
-    // Sonatype OSS deployment
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      val (name, url) = if (isSnapshot.value) ("snapshots", nexus + "content/repositories/snapshots")
-      else ("releases", nexus + "service/local/staging/deploy/maven2")
-      Some(name at url)
-    },
-    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomExtra := <scm>
@@ -42,7 +43,7 @@ object BuildSettings {
       </developers>,
     parallelExecution := false,
     homepage := Some(new java.net.URL("https://github.com/softwaremill/supler")),
-    licenses := ("Apache2", new java.net.URL("http://www.apache.org/licenses/LICENSE-2.0.txt")) :: Nil
+    licenses := ("Apache-2.0", new java.net.URL("http://www.apache.org/licenses/LICENSE-2.0.txt")) :: Nil
   )
 
   lazy val formatSettings = SbtScalariform.scalariformSettings ++ Seq(
@@ -84,13 +85,23 @@ object SuplerBuild extends Build {
     settings = buildSettings ++ Seq(publishArtifact := false)
   ) aggregate(supler, suplerjs, examples)
 
+  lazy val makeVersionSh = taskKey[Seq[File]]("Creates .run.central.synchro.sh file.")
+
   lazy val supler: Project = Project(
     "supler",
     file("supler"),
     settings = buildSettings ++ Seq(
       libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
-      libraryDependencies ++= Seq(json4sNative, scalaTest))
-  ).settings(formatSettings: _*)
+      libraryDependencies ++= Seq(json4sNative, scalaTest),
+      makeVersionSh := {
+        val pf = new java.io.File(".run.central.synchro.sh")
+        val content = s"""|#!/bin/bash
+                         |PROJECT_VERSION=${version.value} /bin/bash .central.synchro.sh
+                      """.stripMargin
+        IO.write(pf, content)
+        Seq(pf)
+      })
+  )
 
   lazy val createAndCopySuplerJs = taskKey[Unit]("Create and copy the supler js files.")
 
@@ -100,15 +111,15 @@ object SuplerBuild extends Build {
     settings = buildSettings ++ assemblySettings ++ Seq(
       libraryDependencies ++= Seq(akka, sprayCan, sprayRouting, sprayHttpx, jodaTime, jodaConvert),
       jarName in assembly := "supler-example.jar",
-      mainClass in assembly := Some("org.supler.demo.DemoServer"),
+      mainClass in assembly := Some("org.demo.DemoServer"),
       createAndCopySuplerJs := {
         val suplerJsDir = baseDirectory.value / ".." / "supler-js"
 
         println("Running grunt")
         Process(List("grunt", "ts"), suplerJsDir.getCanonicalFile).!
 
-        val suplerJsSource = suplerJsDir / "app" / "scripts" / "compiled" / "supler.out.js"
-        val suplerJsTarget = (classDirectory in Compile).value / "supler.out.js"
+        val suplerJsSource = suplerJsDir / "target" / "supler.js"
+        val suplerJsTarget = (classDirectory in Compile).value / "supler.js"
         println(s"Copying supler.js to resources from $suplerJsSource to $suplerJsTarget")
         IO.copy(List((suplerJsSource, suplerJsTarget)))
       },

@@ -44,13 +44,19 @@ object JsonTransformer {
   implicit object FloatJsonTransformer extends JsonTransformerPF[Float] {
     val typeName = "float"
     def toJValue(value: Float) = Some(JDouble(value))
-    def fromJValuePF = { case JDouble(v) => v.toFloat }
+    def fromJValuePF = {
+      case JDouble(v) => v.toFloat
+      case JInt(v)    => v.toFloat
+    }
   }
 
   implicit object DoubleJsonTransformer extends JsonTransformerPF[Double] {
     val typeName = "float"
     def toJValue(value: Double) = Some(JDouble(value))
-    def fromJValuePF = { case JDouble(v) => v }
+    def fromJValuePF = {
+      case JDouble(v) => v
+      case JInt(v)    => v.toDouble
+    }
   }
 
   implicit object BooleanJsonTransformer extends JsonTransformerPF[Boolean] {

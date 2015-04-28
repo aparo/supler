@@ -3,8 +3,13 @@ package org.supler.transformation
 import java.text.{ParseException, SimpleDateFormat}
 import java.util.{Date, UUID}
 
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
+import org.json4s.JsonAST.{ JValue, JString }
+import org.json4s.native.JsonMethods._
 import org.supler.Supler
 import org.supler.field.{BasicFieldCompatible, RenderHint}
+import play.api.libs.json.{ Json, JsObject }
 
 trait BasicTypeTransformer[U, S] {
   def serialize(u: U): S
@@ -39,8 +44,7 @@ object BasicTypeTransformer {
 
     override def deserialize(s: String) = try {
       Right(UUID.fromString(s))
-    }
-    catch {
+    } catch {
       case e: IllegalArgumentException => Left("error_illegalUUIDformat")
     }
   }
@@ -52,12 +56,31 @@ object BasicTypeTransformer {
 
     override def deserialize(d: String) = try {
       Right(ISODateFormat.parse(d))
-    }
-    catch {
+    } catch {
       case e: ParseException => Left("error_illegalDateformat")
     }
 
     override def renderHint = Some(Supler.asDate())
+  }
+
+  implicit val dateTimeTransformer = new StringTransformer[DateTime] {
+    override def serialize(t: DateTime) = ISODateTimeFormat.date().print(t)
+
+    override def deserialize(u: String) = try {
+      Right(ISODateTimeFormat.date().parseDateTime(u))
+    } catch {
+      case e: IllegalArgumentException => Left("error_custom_illegalDateFormat")
+    }
+  }
+
+  implicit val jsObjectTransformer = new StringTransformer[JsObject] {
+    override def serialize(t: JsObject) = Json.stringify(t)
+
+    override def deserialize(u: String) = try {
+      Right(Json.parse(u).asInstanceOf[JsObject])
+    } catch {
+      case e: IllegalArgumentException => Left("error_custom_illegalJSONFormat")
+    }
   }
 
   implicit def optionTransformer[U, S](implicit base: BasicTypeTransformer[U, S]): BasicTypeTransformer[Option[U], Option[S]] =

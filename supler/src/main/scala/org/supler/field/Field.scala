@@ -52,6 +52,7 @@ trait Field[T] extends Row[T] {
     val PossibleValues = "possible_values"
     val Path = "path"
     val EmptyValue = "empty_value"
+    val Icon = "icon"
     val Enabled = "enabled"
 
     val ValidateRequired = "required"
@@ -59,6 +60,7 @@ trait Field[T] extends Row[T] {
 
   protected object SpecialFieldTypes {
     val Select = "select"
+    val MultiEdit = "multiedit"
     val Subform = "subform"
     val Static = "static"
     val Action = "action"

@@ -12,12 +12,16 @@ case class ActionField[T](
   description: Option[String],
   actionValidationScope: ActionValidationScope,
   enabledIf: T => Boolean,
-  includeIf: T => Boolean) extends Field[T] {
+    includeIf: T => Boolean,
+    icon: Option[String] = None) extends Field[T] {
 
   require(name.matches("\\w+"), "Action name must contain only word characters (letters, numbers, _)")
 
   def label(newLabel: String): ActionField[T] = this.copy(label = Some(newLabel))
+
   def description(newDescription: String): ActionField[T] = this.copy(description = Some(newDescription))
+
+  def icon(icon: String): ActionField[T] = this.copy(icon = Some(icon))
 
   def validateNone(): ActionField[T] = this.copy(actionValidationScope = BeforeActionValidateNone)
   def validateAll(): ActionField[T] = this.copy(actionValidationScope = BeforeActionValidateAll)
@@ -33,6 +37,8 @@ case class ActionField[T](
     val validationScopeJSON = JObject(JField("name", JString(validationScopeJSONData.name)) :: validationScopeJSONData.extra)
 
     JObject(List(
+      JField(Label, JString(label.getOrElse(""))),
+      JField(Icon, JString(icon.getOrElse(""))),
       JField(Type, JString(SpecialFieldTypes.Action)),
       JField(Path, JString(parentPath.append(name).toString)),
       JField("validation_scope", validationScopeJSON)

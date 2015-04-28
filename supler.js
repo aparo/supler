@@ -1056,7 +1056,7 @@ var Supler;
         }
         SendController.prototype.attachRefreshListeners = function () {
             var _this = this;
-            this.ifEnabledForEachFormElement(function (htmlFormElement) {
+            this.forEachFormElement(function (htmlFormElement) {
                 if (htmlFormElement.nodeName != "FIELDSET") {
                     htmlFormElement.onchange = function () { return _this.refreshListenerFor(htmlFormElement); };
                 }
@@ -1064,7 +1064,7 @@ var Supler;
         };
         SendController.prototype.attachActionListeners = function () {
             var _this = this;
-            this.ifEnabledForEachFormElement(function (htmlFormElement) {
+            this.forEachFormElement(function (htmlFormElement) {
                 if (htmlFormElement.getAttribute(Supler.SuplerAttributes.FIELD_TYPE) === Supler.FieldTypes.ACTION) {
                     htmlFormElement.onclick = function () { return _this.actionListenerFor(htmlFormElement); };
                 }
@@ -1072,7 +1072,8 @@ var Supler;
         };
         SendController.prototype.refreshListenerFor = function (htmlFormElement) {
             var _this = this;
-            if (!this.actionInProgress && !this.validation.processClientSingle(htmlFormElement.id)) {
+            var validationResult = this.validation.processClientSingle(htmlFormElement.id);
+            if (!this.actionInProgress && this.options.sendEnabled() && !validationResult) {
                 this.refreshCounter += 1;
                 var thisRefreshNumber = this.refreshCounter;
                 var applyRefreshResultsCondition = function () {
@@ -1085,7 +1086,7 @@ var Supler;
         };
         SendController.prototype.actionListenerFor = function (htmlFormElement) {
             var _this = this;
-            if (!this.actionInProgress) {
+            if (!this.actionInProgress && this.options.sendEnabled()) {
                 this.actionInProgress = true;
                 var id = htmlFormElement.id;
                 var validationPassed = !this.validation.processClientSingle(id) && !this.validation.processClient(this.formElementDictionary.getElement(id).validationScope);
@@ -1102,15 +1103,13 @@ var Supler;
         SendController.prototype.actionCompleted = function () {
             this.actionInProgress = false;
         };
-        SendController.prototype.ifEnabledForEachFormElement = function (body) {
-            if (this.options.sendEnabled()) {
-                this.formElementDictionary.foreach(function (elementId, formElement) {
-                    var htmlFormElement = document.getElementById(elementId);
-                    if (htmlFormElement) {
-                        body(htmlFormElement);
-                    }
-                });
-            }
+        SendController.prototype.forEachFormElement = function (body) {
+            this.formElementDictionary.foreach(function (elementId, formElement) {
+                var htmlFormElement = document.getElementById(elementId);
+                if (htmlFormElement) {
+                    body(htmlFormElement);
+                }
+            });
         };
         SendController.prototype.sendSuccessFn = function (applyResultsCondition, onComplete) {
             var _this = this;

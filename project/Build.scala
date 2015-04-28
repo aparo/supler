@@ -64,17 +64,17 @@ object BuildSettings {
 }
 
 object Dependencies {
-  val scalaTest     = "org.scalatest"     %% "scalatest"      % "2.1.6"   % "test"
-  val json4sNative  = "org.json4s"        %% "json4s-native"  % "3.2.10"
+  val scalaTest = "org.scalatest" %% "scalatest" % "2.1.6" % "test"
+  val json4sNative = "org.json4s" %% "json4s-native" % "3.2.10"
   val playJson      = "com.typesafe.play" %% "play-json"      % "2.3.8"
-  val akka          = "com.typesafe.akka" %% "akka-actor"     % "2.3.4"
-  val jodaTime      = "joda-time"          % "joda-time"      % "2.5"
-  val jodaConvert   = "org.joda"           % "joda-convert"   % "1.7"
+  val akka = "com.typesafe.akka" %% "akka-actor" % "2.3.4"
+  val jodaTime = "joda-time" % "joda-time" % "2.5"
+  val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
-  val sprayVersion  = "1.3.1"
-  val sprayCan      = "io.spray"          %% "spray-can"      % sprayVersion
-  val sprayRouting  = "io.spray"          %% "spray-routing"  % sprayVersion
-  val sprayHttpx    = "io.spray"          %% "spray-httpx"    % sprayVersion
+  val sprayVersion = "1.3.1"
+  val sprayCan = "io.spray" %% "spray-can" % sprayVersion
+  val sprayRouting = "io.spray" %% "spray-routing" % sprayVersion
+  val sprayHttpx = "io.spray" %% "spray-httpx" % sprayVersion
 }
 
 object SuplerBuild extends Build {
@@ -94,7 +94,7 @@ object SuplerBuild extends Build {
     "supler",
     file("supler"),
     settings = buildSettings ++ Seq(
-      libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
+      libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _ % "provided"),
       libraryDependencies ++= Seq(json4sNative, scalaTest, playJson),
       makeVersionSh := {
         val pf = new java.io.File(".run.central.synchro.sh")
@@ -136,7 +136,7 @@ object SuplerBuild extends Build {
 
   val updateNpm = baseDirectory map { bd =>
     println("Updating NPM dependencies in " + bd)
-    haltOnCmdResultError(Process("npm install", bd)!)
+    haltOnCmdResultError(Process("npm install", bd) !)
     println("NPM dependencies updated")
   }
 

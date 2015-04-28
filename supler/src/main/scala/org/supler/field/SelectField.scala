@@ -18,6 +18,8 @@ trait SelectField[T, U] extends GenerateBasicJSON[T] {
 
   protected def multiple: Boolean
 
+  def fieldType = SpecialFieldTypes.Select
+
   override protected def generateJSONData(obj: T) = {
     val valueData = generateValueJSONData(obj)
 
@@ -27,7 +29,7 @@ trait SelectField[T, U] extends GenerateBasicJSON[T] {
     val multipleJSON = if (multiple) JField(JSONFieldNames.Multiple, JBool(value = true)) :: Nil else Nil
 
     BasicJSONData(
-      SpecialFieldTypes.Select,
+      fieldType,
       valueData.valueJSON,
       validationJSON,
       valueData.emptyValueJSON,

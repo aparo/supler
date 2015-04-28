@@ -1,6 +1,6 @@
 package org.supler.field
 
-import org.json4s.JsonAST.{ JField, JInt }
+import org.json4s.JsonAST.{ JField, JInt, JBool }
 
 abstract class RenderHint(val name: String) {
   def extraJSON: List[JField] = Nil
@@ -15,18 +15,28 @@ case object BasicFieldHiddenRenderHint extends RenderHint("hidden") with BasicFi
 
 case object BasicFieldDateRenderHint extends RenderHint("date") with BasicFieldCompatible
 
+case object CheckBoxRenderHint extends RenderHint("checkbox") with BasicFieldCompatible with SelectManyFieldCompatible
+
 case object SelectOneFieldRadioRenderHint extends RenderHint("radio") with SelectOneFieldCompatible
 case object SelectOneFieldDropdownRenderHint extends RenderHint("dropdown") with SelectOneFieldCompatible
 
-case object SubformTableRenderHint extends RenderHint("table") with SubformFieldCompatible
-case object SubformListRenderHint extends RenderHint("list") with SubformFieldCompatible
+case class SubformTableRenderHint(collapsible: Boolean = true) extends RenderHint("table") with SubformFieldCompatible {
+  override def extraJSON: List[JField] = List(JField("collapsible", JBool(collapsible)))
+}
+case class SubformListRenderHint(collapsible: Boolean = true) extends RenderHint("list") with SubformFieldCompatible {
+  override def extraJSON: List[JField] = List(JField("collapsible", JBool(collapsible)))
+}
 
 case class CustomRenderHint(override val name: String, override val extraJSON: List[JField] = Nil) extends RenderHint(name)
-  with BasicFieldCompatible with SelectOneFieldCompatible with SelectManyFieldCompatible
+  with BasicFieldCompatible with SelectOneFieldCompatible with SelectManyFieldCompatible with EditManyFieldCompatible
+
+case object EditableListHint extends RenderHint("list") with EditManyFieldCompatible
+
+case object IconRenderHint extends RenderHint("icon") with BasicFieldCompatible
 
 trait RenderHints {
-  def asList() = SubformListRenderHint
-  def asTable() = SubformTableRenderHint
+  def asList(collapsible: Boolean = true) = SubformListRenderHint(collapsible)
+  def asTable(collapsible: Boolean = true) = SubformTableRenderHint(collapsible)
 
   def asPassword() = BasicFieldPasswordRenderHint
   def asTextarea(rows: Int = -1, cols: Int = -1) = {

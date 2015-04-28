@@ -18,6 +18,10 @@ sealed trait SuplerData[+T] {
 trait FormWithObject[T] extends SuplerData[T] {
   def obj: T
   def form: Form[T]
+
+  def id = form.id
+
+  def options = form.options
   def meta: FormMeta
   /**
    * Custom data which will be included in the generated JSON, passed to the frontend.

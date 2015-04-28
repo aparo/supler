@@ -10,6 +10,10 @@ import org.supler.validation._
 case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
   requireFieldsUnique()
 
+  var id: String = UUID.randomUUID().toString.replace("-", "")
+
+  var options: JValue = JObject() 
+
   def apply(obj: T): FormWithObject[T] = InitialFormWithObject(this, obj, None, FormMeta(Map()))
 
   def withNewEmpty: FormWithObject[T] = InitialFormWithObject(this, createEmpty(), None, FormMeta(Map()))
@@ -23,8 +27,9 @@ case class Form[T](rows: List[Row[T]], createEmpty: () => T) {
     val rowsJSONs = rows.map(_.generateJSON(parentPath, obj))
     JObject(
       JField("fields", JArray(rowsJSONs.flatMap(_.fields))),
-      JField("fieldOrder", JArray(rowsJSONs.map(_.fieldOrderAsJSON)))
-  )
+      JField("fieldOrder", JArray(rowsJSONs.map(_.fieldOrderAsJSON))),
+      JField("id", JString(id)),
+      JField("options", options))
   }
 
   private[supler] def applyJSONValues(parentPath: FieldPath, obj: T, jvalue: JValue): PartiallyAppliedObj[T] = {

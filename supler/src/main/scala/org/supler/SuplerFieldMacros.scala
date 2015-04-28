@@ -1,5 +1,6 @@
 package org.supler
 
+import org.joda.time.DateTime
 import org.supler.field._
 import org.supler.transformation.Transformer
 
@@ -104,9 +105,27 @@ object SuplerFieldMacros {
     }
   }
 
-  def subform_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)
-    (param: c.Expr[T => ContU], form: c.Expr[Form[U]])
-    (container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
+  def editManyField_impl[T: c.WeakTypeTag, U: c.WeakTypeTag](c: blackbox.Context)(param: c.Expr[T => List[U]])(labelForValue: c.Expr[U => String]): c.Expr[EditManyField[T, U]] = {
+
+    import c.universe._
+
+    val (fieldName, paramRepExpr) = extractFieldName(c)(param)
+
+    val readFieldValueExpr = generateFieldRead[T, List[U]](c)(fieldName)
+
+    val classSymbol = implicitly[WeakTypeTag[T]].tpe.typeSymbol.asClass
+
+    val writeFieldValueExpr = generateFieldWrite[T, List[U]](c)(fieldName, classSymbol)
+
+    reify {
+      FactoryMethods.newEditManyField(paramRepExpr.splice,
+        readFieldValueExpr.splice,
+        writeFieldValueExpr.splice,
+        labelForValue.splice, readFieldValueExpr.splice)
+    }
+  }
+
+  def subform_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)(param: c.Expr[T => ContU], form: c.Expr[Form[U]])(container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[SubformField[T, ContU, U, Cont]] = {
 
     subform_createempty_impl[T, ContU, U, Cont](c)(param, form, null)(container)
   }
@@ -154,7 +173,7 @@ object SuplerFieldMacros {
         embeddedForm: Form[U], createEmpty: Option[() => U]): SubformField[T, ContU, U, Cont] = {
 
       SubformField[T, ContU, U, Cont](c, fieldName, read, write, None, None, embeddedForm, createEmpty,
-        SubformListRenderHint, AlwaysCondition, AlwaysCondition)
+        SubformListRenderHint(), AlwaysCondition, AlwaysCondition)
     }
 
     def newAlmostSelectOneField[T, U](fieldName: String, read: T => U, write: (T, U) => T, required: Boolean,
@@ -173,6 +192,17 @@ object SuplerFieldMacros {
                                        labelForValue: U => String): AlmostSelectManyListField[T, U] = {
 
       new AlmostSelectManyListField[T, U](fieldName, read, write, labelForValue, None)
+    }
+
+    def newEditManyField[T, U](fieldName: String, read: T => List[U], write: (T, List[U]) => T,
+                               labelForValue: U => String,
+                               valuesProvider: ValuesProvider[T, U]): EditManyField[T, U] = {
+
+      //    EditManyField(name, read, write, Nil, valuesProvider, None, labelForValue, None, renderHint,
+      //      AlwaysCondition, AlwaysCondition)
+
+      new EditManyField[T, U](fieldName, read, write, Nil, None, None, labelForValue, valuesProvider, None, None,
+        AlwaysCondition, AlwaysCondition)
     }
   }
 
@@ -267,6 +297,7 @@ object SuplerFieldMacros {
     if (tpe <:< typeOf[Double]) return Some(reify { 0.0d })
     if (tpe <:< typeOf[String]) return Some(reify { "" })
     if (tpe <:< typeOf[Boolean]) return Some(reify { false })
+    if (tpe <:< typeOf[DateTime]) return Some(reify { DateTime.now() })
 
     if (tpe <:< typeOf[Option[_]]) return Some(reify { None })
     if (tpe <:< typeOf[List[_]]) return Some(reify { Nil })

@@ -38,8 +38,8 @@ object Supler extends Validators with RenderHints {
   def selectManyField[T, U](param: T => Set[U])(labelForValue: U => String): AlmostSelectManyField[T, U] =
     macro SuplerFieldMacros.selectManyField_impl[T, U]
 
-  def selectManyField[T, U](param: T => List[U])(labelForValue: U => String): AlmostSelectManyListField[T, U] =
-  macro SuplerFieldMacros.selectManyListField_impl[T, U]
+  def editManyField[T, U](param: T => List[U])(labelForValue: U => String): EditManyField[T, U] = macro SuplerFieldMacros.editManyField_impl[T, U]
+  def selectManyField[T, U](param: T => List[U])(labelForValue: U => String): AlmostSelectManyListField[T, U] = macro SuplerFieldMacros.selectManyListField_impl[T, U]
 
   /**
    * A new subform field. Uses an auto-generated method to create "empty" instances of objects backing the subform,
@@ -102,10 +102,14 @@ trait Supler[T] extends Validators {
    *
    * By default select-many fields are rendered as checkboxes. Use the `.renderHint()` method to customize.
    */
-  def selectManyField[U](param: T => Set[U])(labelForValue: U => String): AlmostSelectManyField[T, U] =
-    macro SuplerFieldMacros.selectManyField_impl[T, U]
-  def selectManyListField[U](param: T => List[U])(labelForValue: U => String): AlmostSelectManyListField[T, U] =
-  macro SuplerFieldMacros.selectManyListField_impl[T, U]
+  def selectManyField[U](param: T => Set[U])(labelForValue: U => String): AlmostSelectManyField[T, U] = macro SuplerFieldMacros.selectManyField_impl[T, U]
+
+  def selectManyListField[U](param: T => List[U])(labelForValue: U => String): AlmostSelectManyListField[T, U] = macro SuplerFieldMacros.selectManyListField_impl[T, U]
+
+  /**
+   * A new edit many field. The label for each value will be created using `labelForValue`.
+   */
+  def editManyField[U](param: T => List[U])(labelForValue: U => String): EditManyField[T, U] = macro SuplerFieldMacros.editManyField_impl[T, U]
 
   /**
    * A new subform field. Uses an auto-generated method to create "empty" instances of objects backing the subform,

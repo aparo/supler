@@ -66,6 +66,7 @@ object BuildSettings {
 object Dependencies {
   val scalaTest     = "org.scalatest"     %% "scalatest"      % "2.1.6"   % "test"
   val json4sNative  = "org.json4s"        %% "json4s-native"  % "3.2.10"
+  val playJson      = "com.typesafe.play" %% "play-json"      % "2.3.8"
   val akka          = "com.typesafe.akka" %% "akka-actor"     % "2.3.4"
   val jodaTime      = "joda-time"          % "joda-time"      % "2.5"
   val jodaConvert   = "org.joda"           % "joda-convert"   % "1.7"
@@ -94,7 +95,7 @@ object SuplerBuild extends Build {
     file("supler"),
     settings = buildSettings ++ Seq(
       libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
-      libraryDependencies ++= Seq(json4sNative, scalaTest),
+      libraryDependencies ++= Seq(json4sNative, scalaTest, playJson),
       makeVersionSh := {
         val pf = new java.io.File(".run.central.synchro.sh")
         val content = s"""|#!/bin/bash

@@ -2,8 +2,8 @@ package org.supler
 
 import java.util.Date
 
-import org.json4s.JValue
-import org.json4s.JsonAST.{JInt, JObject, JField}
+import org.json4s.JsValue
+import org.json4s.JsonAST.{JsNumber, JsObject, JField}
 import org.json4s.native.JsonMethods._
 import org.scalatest._
 import org.supler.Supler._
@@ -23,14 +23,14 @@ class TransformerTest extends FlatSpec with ShouldMatchers {
   implicit val pointJsonTransformer: JsonTransformer[Point] = new JsonTransformer[Point] {
     override def typeName = "point"
 
-    override def fromJValue(jvalue: JValue) = (for {
-      JObject(fields) <- jvalue
-      JField("x", JInt(x)) <- fields
-      JField("y", JInt(y)) <- fields
+    override def fromJValue(jvalue: JsValue) = (for {
+      JsObject(fields) <- jvalue
+      JField("x", JsNumber(x)) <- fields
+      JField("y", JsNumber(y)) <- fields
     } yield Point(x.toInt, y.toInt)).headOption
 
     override def toJValue(value: Point) = Some(
-      JObject(JField("x", JInt(value.x)), JField("y", JInt(value.y))))
+      JsObject(JField("x", JsNumber(value.x)), JField("y", JsNumber(value.y))))
   }
 
   "date transformer" should "add date hint by default" in {

@@ -94,28 +94,28 @@ class SuplerTest extends FlatSpec with ShouldMatchers {
       f.field(_.f4)
     ))
 
-    val jsonInOrder = JObject(
-      JField("f1", JString("John")),
-      JField("f2", JInt(10)),
-      JField("f3", JBool(value = true)),
-      JField("f4", JString("Something"))
+    val jsonInOrder = JsObject(
+      JField("f1", JsString("John")),
+      JField("f2", JsNumber(10)),
+      JField("f3", JsBoolean(value = true)),
+      JField("f4", JsString("Something"))
     )
 
-    val jsonOutOfOrder = JObject(
-      JField("f3", JBool(value = true)),
-      JField("f2", JInt(10)),
-      JField("f4", JString("")),
-      JField("f1", JString("John"))
+    val jsonOutOfOrder = JsObject(
+      JField("f3", JsBoolean(value = true)),
+      JField("f2", JsNumber(10)),
+      JField("f4", JsString("")),
+      JField("f1", JsString("John"))
     )
 
-    val jsonPartial1 = JObject(
-      JField("f1", JString("John")),
-      JField("f2", JInt(10))
+    val jsonPartial1 = JsObject(
+      JField("f1", JsString("John")),
+      JField("f2", JsNumber(10))
     )
 
-    val jsonPartial2 = JObject(
-      JField("f1", JString("John")),
-      JField("f3", JBool(value = true))
+    val jsonPartial2 = JsObject(
+      JField("f1", JsString("John")),
+      JField("f3", JsBoolean(value = true))
     )
 
     // when

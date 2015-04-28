@@ -1,9 +1,9 @@
 package org.supler.field
 
-import org.json4s
-import org.json4s.JsonAST._
+
 import org.supler.validation.PartiallyAppliedObj
 import org.supler.{FieldPath, MultiFieldRow, Row, RowsJSON}
+import play.api.libs.json._
 
 trait Field[T] extends Row[T] {
   def name: String
@@ -21,24 +21,24 @@ trait Field[T] extends Row[T] {
       val isEnabled = enabledIf(obj)
 
       val fieldJsonPartial = generateFieldJSON(parentPath, obj)
-      val commonJson = JField(JSONFieldNames.Name, JString(name)) ::
-        JField(JSONFieldNames.Enabled, JBool(isEnabled)) ::
-        JField(JSONFieldNames.Label, JString(label.getOrElse(""))) ::
-        description.map(d => JField(JSONFieldNames.Description, JString(d)) :: Nil).getOrElse(Nil)
-      val fieldJson = JObject(commonJson ++ fieldJsonPartial.obj)
+      val commonJson = List(JSONFieldNames.Name -> JsString(name),
+        JSONFieldNames.Enabled -> JsBoolean(isEnabled),
+        JSONFieldNames.Label -> JsString(label.getOrElse(""))) ++
+        description.map(d => JSONFieldNames.Description -> JsString(d))
+      val fieldJson = JsObject(commonJson)++ fieldJsonPartial
 
       RowsJSON.singleField(fieldJson, name)
     } else RowsJSON.empty
   }
 
-  override private[supler] def applyJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, json4s.JValue]) = {
+  override private[supler] def applyJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]) = {
     if (includeIf(obj) && enabledIf(obj)) {
       applyFieldJSONValues(parentPath, obj, jsonFields)
     } else PartiallyAppliedObj.full(obj)
   }
 
-  private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, json4s.JValue]): PartiallyAppliedObj[T]
-  private[supler] def generateFieldJSON(parentPath: FieldPath, obj: T): JObject
+  private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T]
+  private[supler] def generateFieldJSON(parentPath: FieldPath, obj: T): JsObject
 
   protected object JSONFieldNames {
     val Name = "name"
@@ -69,6 +69,6 @@ trait Field[T] extends Row[T] {
   private[supler] override def findAction(
     parentPath: FieldPath,
     obj: T,
-    jsonFields: Map[String, json4s.JValue],
+    jsonFields: Map[String, json4s.JsValue],
     ctx: RunActionContext): Option[RunnableAction] = None
 }

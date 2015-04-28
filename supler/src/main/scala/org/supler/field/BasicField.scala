@@ -1,9 +1,9 @@
 package org.supler.field
 
-import org.json4s.JsonAST._
 import org.supler._
 import org.supler.validation._
 import org.supler.transformation.Transformer
+import play.api.libs.json._
 
 case class BasicField[T, U](
   name: String,
@@ -34,13 +34,13 @@ case class BasicField[T, U](
   protected def generateJSONData(obj: T) = {
     BasicJSONData(
       valueJSONValue = transformer.serialize(read(obj)),
-      validationJSON = JField(JSONFieldNames.ValidateRequired, JBool(required)) :: validators.flatMap(_.generateJSON),
+      validationJSON = Seq(JSONFieldNames.ValidateRequired -> JsBoolean(required)) :: validators.flatMap(_.generateJSON),
       fieldTypeName = transformer.typeName,
       emptyValue = emptyValue.flatMap(transformer.serialize)
     )
   }
 
-  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {
+  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T] = {
     import PartiallyAppliedObj._
     val appliedOpt = for {
           jsonValue <- jsonFields.get(name)

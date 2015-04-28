@@ -1,6 +1,6 @@
 package org.supler
 
-import org.json4s.JsonAST.{JArray, JString}
+import org.json4s.JsonAST.{JArray, JsString}
 import org.scalatest._
 import org.supler.Supler._
 
@@ -30,9 +30,9 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
 
     orderFields should have size 1
     orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("field2"))),
-      JArray(List(JString("field3"))) )))
+      JArray(List(JsString("field1"))),
+      JArray(List(JsString("field2"))),
+      JArray(List(JsString("field3"))) )))
   }
 
   "supler" should "generate non flat order list for ordered simple forms" in {
@@ -45,8 +45,8 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
 
     orderFields should have size 1
     orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"), JString("field2"))),
-      JArray(List(JString("field3"))) )))
+      JArray(List(JsString("field1"), JsString("field2"))),
+      JArray(List(JsString("field3"))) )))
   }
 
   "supler" should "generate order for subform" in {
@@ -65,14 +65,14 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
 
     // first the subform
     orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("field2"))),
-      JArray(List(JString("field3"))) )))
+      JArray(List(JsString("field1"))),
+      JArray(List(JsString("field2"))),
+      JArray(List(JsString("field3"))) )))
 
     // and the main form
     orderFields(1)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("obj"))) )))
+      JArray(List(JsString("field1"))),
+      JArray(List(JsString("obj"))) )))
   }
 
   "supler" should "generate order for list subform" in {
@@ -91,16 +91,16 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
 
     // first the 2 subforms
     orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"), JString("field2"))),
-      JArray(List(JString("field3"))) )))
+      JArray(List(JsString("field1"), JsString("field2"))),
+      JArray(List(JsString("field3"))) )))
     orderFields(1)._2 should be( JArray(List(
-      JArray(List(JString("field1"), JString("field2"))),
-      JArray(List(JString("field3"))) )))
+      JArray(List(JsString("field1"), JsString("field2"))),
+      JArray(List(JsString("field3"))) )))
 
     // and the main form
     orderFields(2)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("objList"))) )))
+      JArray(List(JsString("field1"))),
+      JArray(List(JsString("objList"))) )))
   }
 
   private def o = OrderTestObj("this", "is", "sparta")

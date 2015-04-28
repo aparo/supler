@@ -1,9 +1,8 @@
 package org.supler.field
 
-import org.json4s._
-import org.json4s.JsonAST.{JBool, JField, JObject}
 import org.supler._
 import org.supler.validation.Validator
+import play.api.libs.json._
 
 import scala.util.Try
 
@@ -23,10 +22,10 @@ trait SelectField[T, U] extends GenerateBasicJSON[T] {
   override protected def generateJSONData(obj: T) = {
     val valueData = generateValueJSONData(obj)
 
-    val validationJSON = JField(JSONFieldNames.ValidateRequired, JBool(required)) ::
+    val validationJSON = (JSONFieldNames.ValidateRequired -> JsBoolean(required)) ::
       validators.flatMap(_.generateJSON)
 
-    val multipleJSON = if (multiple) JField(JSONFieldNames.Multiple, JBool(value = true)) :: Nil else Nil
+    val multipleJSON = if (multiple) Seq(JSONFieldNames.Multiple -> JsBoolean(value = true))  else Nil
 
     BasicJSONData(
       fieldType,
@@ -37,18 +36,18 @@ trait SelectField[T, U] extends GenerateBasicJSON[T] {
     )
   }
 
-  protected case class ValueJSONData(valueJSON: Option[JValue], emptyValueJSON: Option[JValue])
+  protected case class ValueJSONData(valueJSON: Option[JsValue], emptyValueJSON: Option[JsValue])
   protected def generateValueJSONData(obj: T): ValueJSONData
 
-  private def generatePossibleValuesJSON(possibleValues: List[U]): List[JField] = {
+  private def generatePossibleValuesJSON(possibleValues: List[U]): List[(String, JsValue)] = {
     val possibleValuesWithIds = idForValue match {
       case None => possibleValues.zipWithIndex.map(vi => (vi._1, vi._2.toString))
       case Some(idFn) => possibleValues.map(v => (v, idFn(v)))
     }
     val possibleJValues = possibleValuesWithIds.map { case (value, id) =>
-      JObject(JField("id", JString(id)), JField("label", JString(labelForValue(value))))
+      Json.obj("id" ->id, "label" -> labelForValue(value))
     }
-    List(JField(JSONFieldNames.PossibleValues, JArray(possibleJValues)))
+    List((JSONFieldNames.PossibleValues-> JsArray(possibleJValues)))
   }
 
   protected def valueFromId(possibleValues: List[U], id: String): Option[U] = {

@@ -1,9 +1,8 @@
 package org.supler.field
 
-import org.json4s._
-import org.json4s.JsonAST.{JObject, JField}
 import org.supler.FieldPath
 import org.supler.validation._
+import play.api.libs.json._
 
 case class ActionField[T](
   name: String,
@@ -34,24 +33,24 @@ case class ActionField[T](
     import JSONFieldNames._
 
     val validationScopeJSONData = actionValidationScope.toValidationScope(parentPath).generateJSONData
-    val validationScopeJSON = JObject(JField("name", JString(validationScopeJSONData.name)) :: validationScopeJSONData.extra)
+    val validationScopeJSON = JsObject(Seq("name" -> JsString(validationScopeJSONData.name)) ++ validationScopeJSONData.extra)
 
-    JObject(List(
-      JField(Label, JString(label.getOrElse(""))),
-      JField(Icon, JString(icon.getOrElse(""))),
-      JField(Type, JString(SpecialFieldTypes.Action)),
-      JField(Path, JString(parentPath.append(name).toString)),
-      JField("validation_scope", validationScopeJSON)
-    ))
+    Json.obj(
+      Label -> JsString(label.getOrElse("")),
+      Icon -> JsString(icon.getOrElse("")),
+      Type -> JsString(SpecialFieldTypes.Action),
+      Path -> JsString(parentPath.append(name).toString),
+      "validation_scope" -> validationScopeJSON
+    )
   }
 
-  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]) =
+  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]) =
     PartiallyAppliedObj.full(obj)
 
   private[supler] override def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope) = Nil
 
-  private[supler] override def findAction(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue], ctx: RunActionContext) = {
-    if (jsonFields.get(name) == Some(JBool(value = true))) {
+  private[supler] override def findAction(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue], ctx: RunActionContext) = {
+    if (jsonFields.get(name) == Some(JsBoolean(value = true))) {
       Some(RunnableAction(
         parentPath.append(name),
         actionValidationScope.toValidationScope(parentPath),
@@ -68,9 +67,9 @@ trait ActionResult[+U] {
 }
 
 object ActionResult {
-  def apply[T](t: T, customData: Option[JValue] = None): ActionResult[T] = FullResult(t, customData)
+  def apply[T](t: T, customData: Option[JsValue] = None): ActionResult[T] = FullResult(t, customData)
 
-  def custom(data: JValue): ActionResult[Nothing] = CustomDataResult(data)
+  def custom(data: JsValue): ActionResult[Nothing] = CustomDataResult(data)
 
   def parentAction[T, U](action: (T, Int, U) => ActionResult[T]): U => ActionResult[U] = { u =>
     new ActionResult[U] {
@@ -82,7 +81,7 @@ object ActionResult {
   }
 }
 
-private[supler] case class FullResult[U](result: U, customData: Option[JValue]) extends ActionResult[U] {
+private[supler] case class FullResult[U](result: U, customData: Option[JsValue]) extends ActionResult[U] {
   private[supler] override def completeWith(ctx: RunActionContext): CompleteActionResult = {
     val lastResult = ctx.parentsStack.foldLeft[Any](result) { case (r, (_, _, parentUpdate)) =>
       parentUpdate.asInstanceOf[Any => Any](r)
@@ -92,13 +91,13 @@ private[supler] case class FullResult[U](result: U, customData: Option[JValue]) 
   }
 }
 
-private[supler] case class CustomDataResult(data: JValue) extends ActionResult[Nothing] {
+private[supler] case class CustomDataResult(data: JsValue) extends ActionResult[Nothing] {
   private[supler] override def completeWith(ctx: RunActionContext) = CustomDataCompleteActionResult(data)
 }
 
 private[supler] sealed trait CompleteActionResult
-private[supler] case class CustomDataCompleteActionResult(json: JValue) extends CompleteActionResult
-private[supler] case class FullCompleteActionResult(value: Any, customData: Option[JValue]) extends CompleteActionResult
+private[supler] case class CustomDataCompleteActionResult(json: JsValue) extends CompleteActionResult
+private[supler] case class FullCompleteActionResult(value: Any, customData: Option[JsValue]) extends CompleteActionResult
 
 private[supler] case class RunActionContext(parentsStack: List[(Any, Int, Function1[_, _])]) {
   def push[T, U](obj: T, i: Int, defaultUpdate: U => T): RunActionContext =

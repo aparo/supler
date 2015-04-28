@@ -1,6 +1,6 @@
 package org.supler
 
-import org.json4s.JsonAST.JObject
+import org.json4s.JsonAST.JsObject
 import org.json4s.native.JsonMethods._
 import org.scalatest._
 
@@ -10,7 +10,7 @@ class FormMetaTest extends FlatSpec with ShouldMatchers {
     val m = FormMeta(Map()) + ("tomek", "domek") + ("witek", "sprytek")
 
     // when
-    val json = compact(render(JObject(m.toJSON)))
+    val json = compact(render(JsObject(m.toJSON)))
 
     // then
     json should be("{\"supler_meta\":{\"tomek\":\"domek\",\"witek\":\"sprytek\"}}")

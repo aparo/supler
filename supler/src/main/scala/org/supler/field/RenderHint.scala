@@ -1,14 +1,14 @@
 package org.supler.field
 
-import org.json4s.JsonAST.{ JField, JInt, JBool }
+import play.api.libs.json._
 
 abstract class RenderHint(val name: String) {
-  def extraJSON: List[JField] = Nil
+  def extraJSON: List[(String, JsValue)] = Nil
 }
 
 case object BasicFieldPasswordRenderHint extends RenderHint("password") with BasicFieldCompatible
 case class BasicFieldTextareaRenderHint(rows: Option[Int], cols: Option[Int]) extends RenderHint("textarea") with BasicFieldCompatible {
-  override def extraJSON = rows.map(r => JField("rows", JInt(r))).toList ++ cols.map(c => JField("cols", JInt(c))).toList
+  override def extraJSON = rows.map(r => ("rows" -> JsNumber(r))).toList ++ cols.map(c => "cols" -> JsNumber(c)).toList
 }
 
 case object BasicFieldHiddenRenderHint extends RenderHint("hidden") with BasicFieldCompatible
@@ -21,13 +21,13 @@ case object SelectOneFieldRadioRenderHint extends RenderHint("radio") with Selec
 case object SelectOneFieldDropdownRenderHint extends RenderHint("dropdown") with SelectOneFieldCompatible
 
 case class SubformTableRenderHint(collapsible: Boolean = true) extends RenderHint("table") with SubformFieldCompatible {
-  override def extraJSON: List[JField] = List(JField("collapsible", JBool(collapsible)))
+  override def extraJSON: List[(String, JsValue)] = List("collapsible" -> JsBoolean(collapsible))
 }
 case class SubformListRenderHint(collapsible: Boolean = true) extends RenderHint("list") with SubformFieldCompatible {
-  override def extraJSON: List[JField] = List(JField("collapsible", JBool(collapsible)))
+  override def extraJSON: List[(String, JsValue)] = List("collapsible" -> JsBoolean(collapsible))
 }
 
-case class CustomRenderHint(override val name: String, override val extraJSON: List[JField] = Nil) extends RenderHint(name)
+case class CustomRenderHint(override val name: String, override val extraJSON: List[(String, JsValue)] = Nil) extends RenderHint(name)
   with BasicFieldCompatible with SelectOneFieldCompatible with SelectManyFieldCompatible with EditManyFieldCompatible
 
 case object EditableListHint extends RenderHint("list") with EditManyFieldCompatible
@@ -48,5 +48,5 @@ trait RenderHints {
   def asHidden() = BasicFieldHiddenRenderHint
   def asDate() = BasicFieldDateRenderHint
 
-  def customRenderHint(name: String, extraJSON: JField*) = CustomRenderHint(name, extraJSON.toList)
+  def customRenderHint(name: String, extraJSON: (String, JsValue)*) = CustomRenderHint(name, extraJSON.toList)
 }

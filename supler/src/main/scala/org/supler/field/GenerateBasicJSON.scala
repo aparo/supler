@@ -1,8 +1,8 @@
 package org.supler.field
 
-import org.json4s.JsonAST.{JField, JObject}
-import org.json4s._
 import org.supler._
+import play.api.libs.json
+import play.api.libs.json._
 
 trait GenerateBasicJSON[T] {
   this: Field[T] =>
@@ -14,26 +14,26 @@ trait GenerateBasicJSON[T] {
 
     import JSONFieldNames._
 
-    JObject(List(
-      JField(Type, JString(data.fieldTypeName)),
-      JField(Validate, JObject(data.validationJSON.toList)),
-      JField(Path, JString(parentPath.append(name).toString))
-    ) ++ data.valueJSONValue.map(JField(Value, _)).toList
-      ++ data.emptyValue.map(JField(EmptyValue, _)).toList
-      ++ generateRenderHintJSONValue.map(JField(RenderHint, _)).toList
-      ++ data.extraJSON)
+    Json.obj(
+      Type -> JsString(data.fieldTypeName),
+      Validate -> JsObject(data.validationJSON),
+      Path -> JsString(parentPath.append(name).toString)
+    )  ++ JsObject( (data.valueJSONValue.map(v => Value-> v)
+      ++ data.emptyValue.map(v => EmptyValue -> v)
+      ++ generateRenderHintJSONValue.map(v => RenderHint -> v)
+      ++ data.extraJSON).toSeq)
   }
 
   protected def generateJSONData(obj: T): BasicJSONData
 
-  private def generateRenderHintJSONValue = renderHint.map(rh => JObject(
-    JField("name", JString(rh.name)) :: rh.extraJSON))
+  private def generateRenderHintJSONValue = renderHint.map(rh => JsObject(
+    Seq("name" -> JsString(rh.name))) ++ rh.extraJSON)
 
   case class BasicJSONData(
     fieldTypeName: String,
-    valueJSONValue: Option[JValue],
-    validationJSON: List[JField],
-    emptyValue: Option[JValue],
-    extraJSON: List[JField] = Nil
+    valueJSONValue: Option[JsValue],
+    validationJSON: List[(String, JsValue)],
+    emptyValue: Option[JsValue],
+    extraJSON: List[(String, JsValue)] = Nil
   )
 }

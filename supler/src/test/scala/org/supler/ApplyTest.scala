@@ -1,9 +1,10 @@
 package org.supler
 
-import org.json4s.JsonAST._
+
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import Supler._
 import org.json4s.native._
+import play.api.libs.json._
 
 class ApplyTest extends FlatSpec with ShouldMatchers {
   "form" should "apply json values to the entity given" in {
@@ -17,23 +18,23 @@ class ApplyTest extends FlatSpec with ShouldMatchers {
       f.field(_.f4)
     ))
 
-    val jsonInOrder = JObject(
-      JField("f1", JString("John")),
-      JField("f2", JInt(10)),
-      JField("f3", JBool(value = true)),
-      JField("f4", JString("Something"))
+    val jsonInOrder = JsObject(
+      JField("f1", JsString("John")),
+      JField("f2", JsNumber(10)),
+      JField("f3", JsBoolean(value = true)),
+      JField("f4", JsString("Something"))
     )
 
-    val jsonOutOfOrder = JObject(
-      JField("f3", JBool(value = true)),
-      JField("f2", JInt(10)),
-      JField("f4", JString("")),
-      JField("f1", JString("John"))
+    val jsonOutOfOrder = JsObject(
+      JField("f3", JsBoolean(value = true)),
+      JField("f2", JsNumber(10)),
+      JField("f4", JsString("")),
+      JField("f1", JsString("John"))
     )
 
-    val jsonPartial = JObject(
-      JField("f1", JString("John")),
-      JField("f2", JInt(10))
+    val jsonPartial = JsObject(
+      JField("f1", JsString("John")),
+      JField("f2", JsNumber(10))
     )
 
     val p = Person("Mary", None, f3 = false, Some("Nothing"))

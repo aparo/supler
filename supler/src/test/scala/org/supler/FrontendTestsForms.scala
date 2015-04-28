@@ -119,12 +119,12 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
 
     val fActionFormAndDataResult = form[SimpleSingleField](f => List(
       f.field(_.f1).label("Field 1"),
-      f.action("act") { s => ActionResult(s.copy(f1 = s.f1 + "x"), customData = Some(JString("data and form")))}
+      f.action("act") { s => ActionResult(s.copy(f1 = s.f1 + "x"), customData = Some(JsString("data and form")))}
     ))
 
     val fActionDataResultOnly = form[SimpleSingleField](f => List(
       f.field(_.f1).label("Field 1"),
-      f.action("act") { s => ActionResult.custom(JString("data only"))}
+      f.action("act") { s => ActionResult.custom(JsString("data only"))}
     ))
 
     writer.writeForm("formOneActionValidateNone", fOneActionValidateNone, obj1)
@@ -334,7 +334,7 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
 
     val complexCustomRenderHint = form[TwoFields](f => List(
       f.field(_.f1).label("Field 1"),
-      f.field(_.f2).label("Field 2").renderHint(customRenderHint("blinking", JField("interval", JInt(20))))
+      f.field(_.f2).label("Field 2").renderHint(customRenderHint("blinking", JField("interval", JsNumber(20))))
     ))
 
     writer.writeForm("simple", simpleCustomRenderHint, TwoFields("a", "b"))
@@ -345,14 +345,14 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
     implicit val pointJsonTransformer: JsonTransformer[Point] = new JsonTransformer[Point] {
       override def typeName = "point"
 
-      override def fromJValue(jvalue: JValue) = (for {
-        JObject(fields) <- jvalue
-        JField("x", JInt(x)) <- fields
-        JField("y", JInt(y)) <- fields
+      override def fromJValue(jvalue: JsValue) = (for {
+        JsObject(fields) <- jvalue
+        JField("x", JsNumber(x)) <- fields
+        JField("y", JsNumber(y)) <- fields
       } yield Point(x.toInt, y.toInt)).headOption
 
       override def toJValue(value: Point) = Some(
-        JObject(JField("x", JInt(value.x)), JField("y", JInt(value.y))))
+        JsObject(JField("x", JsNumber(value.x)), JField("y", JsNumber(value.y))))
     }
 
     val dataForm = form[WithPoint](f => List(
@@ -405,7 +405,7 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
         }
         else {
           Extraction.decompose(obj) match {
-            case JObject(fields) => JObject(meta.toJSON :: fields)
+            case JsObject(fields) => JsObject(meta.toJSON :: fields)
             case _ => throw new RuntimeException(s"Got some weird unexpected object: $obj")
           }
         }
@@ -413,9 +413,9 @@ class FrontendTestsForms extends FlatSpec with ShouldMatchers {
     }
 
     def writeFormAfterAction[T](variableName: String, form: Form[T], obj: T, actionFieldName: String): Unit = {
-      val JObject(fields) = Extraction.decompose(obj)
-      val actionField = JField(actionFieldName, JBool(value = true))
-      val toWrite = pretty(render(form(obj).process(JObject(fields :+ actionField)).generateJSON))
+      val JsObject(fields) = Extraction.decompose(obj)
+      val actionField = JField(actionFieldName, JsBoolean(value = true))
+      val toWrite = pretty(render(form(obj).process(JsObject(fields :+ actionField)).generateJSON))
       pw.println( s""""$variableName": $toWrite,""")
     }
   }

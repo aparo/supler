@@ -53,7 +53,7 @@ trait FormWithObject[T] extends SuplerData[T] {
       "is_supler_form" -> JsBoolean(true),
       "main_form" -> form.generateJSON(EmptyPath, obj),
       "errors" -> JsArray(allErrors.map(_.generateJSON)),
-      "custom_data" -> customData.getOrElse(JsNull))
+      "custom_data" -> customData.getOrElse(JsObject(Nil)))
     )
   }
 

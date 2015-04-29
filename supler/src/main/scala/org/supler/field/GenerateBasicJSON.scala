@@ -26,8 +26,8 @@ trait GenerateBasicJSON[T] {
 
   protected def generateJSONData(obj: T): BasicJSONData
 
-  private def generateRenderHintJSONValue = renderHint.map(rh => JsObject(
-    Seq("name" -> JsString(rh.name))) ++ rh.extraJSON)
+  private def generateRenderHintJSONValue= renderHint.map(rh => JsObject(
+    Seq("name" -> JsString(rh.name))) ++ JsObject(rh.extraJSON))
 
   case class BasicJSONData(
     fieldTypeName: String,

@@ -1,9 +1,9 @@
 /* Copyright 2009-2014 - The Net Planet Europe S.R.L.  All Rights Reserved. */
 package org.supler.field
 
-import org.json4s._
 import org.supler._
 import org.supler.validation._
+import play.api.libs.json._
 
 case class EditManyField[T, U](
     name: String,
@@ -39,7 +39,7 @@ case class EditManyField[T, U](
   protected def generateValueJSONData(obj: T) = {
     val currentValues = read(obj)
 
-    ValueJSONData(Some(JArray(currentValues.toList.map(v => JsString(v.toString)))), None)
+    ValueJSONData(Some(JsArray(currentValues.toList.map(v => JsString(v.toString)))), None)
   }
 
   private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T] = {
@@ -47,7 +47,7 @@ case class EditManyField[T, U](
 
     val values = for {
       jsonValue <- jsonFields.get(name).toList
-      ids <- jsonValue match { case JArray(ids) => List(ids.collect { case JsString(id) => id }); case _ => Nil }
+      ids <- jsonValue match { case JsArray(ids) => List(ids.collect { case JsString(id) => id }); case _ => Nil }
       value <- ids
     } yield value.asInstanceOf[U]
 

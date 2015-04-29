@@ -49,8 +49,8 @@ trait FormWithObject[T] extends SuplerData[T] {
 
   override def generateJSON: JsValue = {
     JsObject(Seq(meta.toJSON) ++
-    Json.obj(
-      "is_supler_form" -> JsBoolean(value = true),
+    List(
+      "is_supler_form" -> JsBoolean(true),
       "main_form" -> form.generateJSON(EmptyPath, obj),
       "errors" -> JsArray(allErrors.map(_.generateJSON)),
       "custom_data" -> customData.getOrElse(JsNull))

@@ -34,7 +34,7 @@ case class StaticField[T](
     BasicJSONData(
       valueJSONValue = Some(Json.obj(
         "params" -> JsArray(msg.params.toList.flatMap(p => transformer.serialize(toStringOrNull(p)).toList))) ++
-          transformer.serialize(msg.key).map(v => "key" -> v).toList
+          JsObject(transformer.serialize(msg.key).map(v => "key" -> v).toList)
       ),
       validationJSON = Nil,
       emptyValue = None,

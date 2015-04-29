@@ -69,6 +69,6 @@ trait Field[T] extends Row[T] {
   private[supler] override def findAction(
     parentPath: FieldPath,
     obj: T,
-    jsonFields: Map[String, json4s.JsValue],
+    jsonFields: Map[String, JsValue],
     ctx: RunActionContext): Option[RunnableAction] = None
 }

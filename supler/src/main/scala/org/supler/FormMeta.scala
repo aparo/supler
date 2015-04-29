@@ -22,7 +22,7 @@ object FormMeta {
   def fromJSON(json: JsValue) = {
     json match {
       case JsObject(fields) => fields.toMap.get(JsonMetaKey) match {
-        case Some(JsObject(entries)) => FormMeta(entries.toMap.collect{case (key: String, value: JsString) => key -> value.s})
+        case Some(JsObject(entries)) => FormMeta(entries.toMap.collect{case (key: String, value: JsString) => key -> value.value})
         case Some(_) => throw new IllegalArgumentException("Form meta is not well formed")
         case None => FormMeta(Map())
       }

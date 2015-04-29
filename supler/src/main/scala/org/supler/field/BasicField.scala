@@ -34,7 +34,7 @@ case class BasicField[T, U](
   protected def generateJSONData(obj: T) = {
     BasicJSONData(
       valueJSONValue = transformer.serialize(read(obj)),
-      validationJSON = Seq(JSONFieldNames.ValidateRequired -> JsBoolean(required)) :: validators.flatMap(_.generateJSON),
+      validationJSON = List(JSONFieldNames.ValidateRequired -> JsBoolean(required)) ++ validators.flatMap(_.generateJSON),
       fieldTypeName = transformer.typeName,
       emptyValue = emptyValue.flatMap(transformer.serialize)
     )

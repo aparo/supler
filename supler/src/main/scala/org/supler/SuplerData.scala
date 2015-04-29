@@ -11,7 +11,7 @@ import play.api.libs.json._
  * - custom data only, represented as json. This can be a result of running an action.
  */
 sealed trait SuplerData[+T] {
-  def generateJSON: JsValue
+  def generateJSON: JsObject
 }
 
 trait FormWithObject[T] extends SuplerData[T] {
@@ -47,7 +47,7 @@ trait FormWithObject[T] extends SuplerData[T] {
     new FormWithObjectAndErrors(form, obj, customData, currentApplyErrors, newValidationErrors, meta)
   }
 
-  override def generateJSON: JsValue = {
+  override def generateJSON: JsObject = {
     JsObject(Seq(meta.toJSON) ++
     List(
       "is_supler_form" -> JsBoolean(true),
@@ -114,6 +114,6 @@ case class FormWithObjectAndErrors[T](
   override def withMeta(key: String, value: String): FormWithObjectAndErrors[T] = this.copy(meta = meta + (key, value))
 }
 
-case class CustomDataOnly private[supler] (customData: JsValue) extends SuplerData[Nothing] {
+case class CustomDataOnly private[supler] (customData: JsObject) extends SuplerData[Nothing] {
   override def generateJSON = customData
 }

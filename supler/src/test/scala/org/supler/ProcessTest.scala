@@ -3,7 +3,8 @@ package org.supler
 import org.scalatest.{ FlatSpec, ShouldMatchers }
 import Supler._
 import org.supler.field.ActionResult
-import org.json4s.native._
+import play.api.libs.json.Json
+
 
 class ProcessTest extends FlatSpec with ShouldMatchers {
 
@@ -23,7 +24,7 @@ class ProcessTest extends FlatSpec with ShouldMatchers {
     val p = Person("", "")
 
     // when
-    val result = personForm(p).process(parseJson("""{ "firstName": "jo", "lastName": "" }"""))
+    val result = personForm(p).process(Json.parse("""{ "firstName": "jo", "lastName": "" }"""))
 
     // then
     result match {
@@ -39,7 +40,7 @@ class ProcessTest extends FlatSpec with ShouldMatchers {
     val p = Person("", "")
 
     // when
-    val result = personForm(p).process(parseJson("""{ "firstName": "jo", "lastName": "lo", "uppercase": true }"""))
+    val result = personForm(p).process(Json.parse("""{ "firstName": "jo", "lastName": "lo", "uppercase": true }"""))
 
     // then
     result match {
@@ -55,7 +56,7 @@ class ProcessTest extends FlatSpec with ShouldMatchers {
     val p = Person("", "")
 
     // when
-    val result = personForm(p).process(parseJson("""{ "firstName": "john", "lastName": "low", "uppercase": true }"""))
+    val result = personForm(p).process(Json.parse("""{ "firstName": "john", "lastName": "low", "uppercase": true }"""))
 
     // then
     result match {

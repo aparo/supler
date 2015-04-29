@@ -67,9 +67,9 @@ trait ActionResult[+U] {
 }
 
 object ActionResult {
-  def apply[T](t: T, customData: Option[JsValue] = None): ActionResult[T] = FullResult(t, customData)
+  def apply[T](t: T, customData: Option[JsObject] = None): ActionResult[T] = FullResult(t, customData)
 
-  def custom(data: JsValue): ActionResult[Nothing] = CustomDataResult(data)
+  def custom(data: JsObject): ActionResult[Nothing] = CustomDataResult(data)
 
   def parentAction[T, U](action: (T, Int, U) => ActionResult[T]): U => ActionResult[U] = { u =>
     new ActionResult[U] {
@@ -81,7 +81,7 @@ object ActionResult {
   }
 }
 
-private[supler] case class FullResult[U](result: U, customData: Option[JsValue]) extends ActionResult[U] {
+private[supler] case class FullResult[U](result: U, customData: Option[JsObject]) extends ActionResult[U] {
   private[supler] override def completeWith(ctx: RunActionContext): CompleteActionResult = {
     val lastResult = ctx.parentsStack.foldLeft[Any](result) { case (r, (_, _, parentUpdate)) =>
       parentUpdate.asInstanceOf[Any => Any](r)
@@ -91,13 +91,13 @@ private[supler] case class FullResult[U](result: U, customData: Option[JsValue])
   }
 }
 
-private[supler] case class CustomDataResult(data: JsValue) extends ActionResult[Nothing] {
+private[supler] case class CustomDataResult(data: JsObject) extends ActionResult[Nothing] {
   private[supler] override def completeWith(ctx: RunActionContext) = CustomDataCompleteActionResult(data)
 }
 
 private[supler] sealed trait CompleteActionResult
-private[supler] case class CustomDataCompleteActionResult(json: JsValue) extends CompleteActionResult
-private[supler] case class FullCompleteActionResult(value: Any, customData: Option[JsValue]) extends CompleteActionResult
+private[supler] case class CustomDataCompleteActionResult(json: JsObject) extends CompleteActionResult
+private[supler] case class FullCompleteActionResult(value: Any, customData: Option[JsObject]) extends CompleteActionResult
 
 private[supler] case class RunActionContext(parentsStack: List[(Any, Int, Function1[_, _])]) {
   def push[T, U](obj: T, i: Int, defaultUpdate: U => T): RunActionContext =

@@ -3,7 +3,7 @@ package org.supler
 import org.scalatest._
 import org.supler.field.{ FullCompleteActionResult, RunActionContext, ActionResult }
 import org.supler.Supler._
-import org.json4s.native.JsonMethods._
+import play.api.libs.json.Json
 
 class SuplerActionTest extends FlatSpec with ShouldMatchers {
   case class A(bs: List[B])
@@ -26,7 +26,7 @@ class SuplerActionTest extends FlatSpec with ShouldMatchers {
     val Some(runnableAction) = fa.findAction(
       EmptyPath,
       A(List(B(List(C("_"))))),
-      parse("""{"bs": [ { "cs": [ { "a": true } ] } ]}"""),
+      Json.parse("""{"bs": [ { "cs": [ { "a": true } ] } ]}"""),
       RunActionContext(Nil))
 
     // then
@@ -52,7 +52,7 @@ class SuplerActionTest extends FlatSpec with ShouldMatchers {
     val Some(runnableAction) = fa.findAction(
       EmptyPath,
       A(List(B(List(C("_"))))),
-      parse("""{"bs": [ { "cs": [ { "a": true } ] } ]}"""),
+      Json.parse("""{"bs": [ { "cs": [ { "a": true } ] } ]}"""),
       RunActionContext(Nil))
 
     // then

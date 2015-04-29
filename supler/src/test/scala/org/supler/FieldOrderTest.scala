@@ -1,8 +1,8 @@
 package org.supler
 
-import org.json4s.JsonAST.{JArray, JsString}
 import org.scalatest._
 import org.supler.Supler._
+import play.api.libs.json._
 
 class FieldOrderTest extends FlatSpec with ShouldMatchers {
   case class OrderTestObj(field1: String, field2: String, field3: String)
@@ -26,13 +26,13 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     // when
     val json = form.generateJSON
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = json.fields.filter(f => f._1 == "fieldOrder")
 
     orderFields should have size 1
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JsString("field1"))),
-      JArray(List(JsString("field2"))),
-      JArray(List(JsString("field3"))) )))
+    orderFields(0)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"))),
+      JsArray(List(JsString("field2"))),
+      JsArray(List(JsString("field3"))) )))
   }
 
   "supler" should "generate non flat order list for ordered simple forms" in {
@@ -41,12 +41,12 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     // when
     val json = form.generateJSON
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = json.fields.filter(f => f._1 == "fieldOrder")
 
     orderFields should have size 1
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JsString("field1"), JsString("field2"))),
-      JArray(List(JsString("field3"))) )))
+    orderFields(0)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"), JsString("field2"))),
+      JsArray(List(JsString("field3"))) )))
   }
 
   "supler" should "generate order for subform" in {
@@ -59,20 +59,20 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     // when
     val json = formInst.generateJSON
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = json.fields.filter(f => f._1 == "fieldOrder")
 
     orderFields should have size 2
 
     // first the subform
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JsString("field1"))),
-      JArray(List(JsString("field2"))),
-      JArray(List(JsString("field3"))) )))
+    orderFields(0)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"))),
+      JsArray(List(JsString("field2"))),
+      JsArray(List(JsString("field3"))) )))
 
     // and the main form
-    orderFields(1)._2 should be( JArray(List(
-      JArray(List(JsString("field1"))),
-      JArray(List(JsString("obj"))) )))
+    orderFields(1)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"))),
+      JsArray(List(JsString("obj"))) )))
   }
 
   "supler" should "generate order for list subform" in {
@@ -85,22 +85,22 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     // when
     val json = formInst.generateJSON
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = json.fields.filter(f => f._1 == "fieldOrder")
 
     orderFields should have size 3
 
     // first the 2 subforms
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JsString("field1"), JsString("field2"))),
-      JArray(List(JsString("field3"))) )))
-    orderFields(1)._2 should be( JArray(List(
-      JArray(List(JsString("field1"), JsString("field2"))),
-      JArray(List(JsString("field3"))) )))
+    orderFields(0)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"), JsString("field2"))),
+      JsArray(List(JsString("field3"))) )))
+    orderFields(1)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"), JsString("field2"))),
+      JsArray(List(JsString("field3"))) )))
 
     // and the main form
-    orderFields(2)._2 should be( JArray(List(
-      JArray(List(JsString("field1"))),
-      JArray(List(JsString("objList"))) )))
+    orderFields(2)._2 should be( JsArray(List(
+      JsArray(List(JsString("field1"))),
+      JsArray(List(JsString("objList"))) )))
   }
 
   private def o = OrderTestObj("this", "is", "sparta")

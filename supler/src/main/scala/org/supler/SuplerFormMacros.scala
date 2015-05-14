@@ -1,3 +1,4 @@
+
 package org.supler
 
 import scala.reflect.macros.blackbox

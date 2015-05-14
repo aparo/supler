@@ -1,8 +1,9 @@
+
 package org.supler.field
 
-import org.json4s.JsonAST.{JNull, JString, JValue}
 import org.supler._
 import org.supler.validation.{PartiallyAppliedObj, Validator}
+import play.api.libs.json._
 
 case class SelectOneField[T, U](
   name: String,
@@ -36,15 +37,15 @@ case class SelectOneField[T, U](
   protected def generateValueJSONData(obj: T) = {
     val possibleValues = valuesProvider(obj)
     val currentValueId = idFromValue(possibleValues, read(obj))
-    ValueJSONData(Some(currentValueId.map(JString).getOrElse(JNull)), Some(JNull))
+    ValueJSONData(Some(currentValueId.map(JsString).getOrElse(JsNull)), Some(JsNull))
   }
 
-  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {
+  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T] = {
     import org.supler.validation.PartiallyAppliedObj._
 
     val value = jsonFields.get(name) match {
-      case Some(JString(id)) => valueFromId(valuesProvider(obj), id)
-      case Some(JNull) => emptyValue
+      case Some(JsString(id)) => valueFromId(valuesProvider(obj), id)
+      case Some(JsNull) => emptyValue
       case _ => None
     }
 

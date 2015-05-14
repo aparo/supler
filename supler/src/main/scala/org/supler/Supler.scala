@@ -1,8 +1,10 @@
+
 package org.supler
 
 import org.supler.field._
 import org.supler.transformation.Transformer
 import org.supler.validation._
+import play.api.libs.json.JsValue
 
 import scala.language.experimental.macros
 
@@ -130,6 +132,29 @@ trait Supler[T] extends Validators {
   def subform[U, ContU, Cont[_]](param: T => ContU, form: Form[U], createEmpty: () => U)
     (implicit container: SubformContainer[ContU, U, Cont]): SubformField[T, ContU, U, Cont] =
     macro SuplerFieldMacros.subform_createempty_impl[T, ContU, U, Cont]
+
+  /**
+   * A new dynsubform field. Uses an auto-generated method to create "empty" instances of objects backing the dynsubform,
+   * which are created when applying values from a JSON object.
+   *
+   * By default dynSubforms are rendered as a list. Use the `.renderHint()` method to customize.
+   */
+  def dynSubform[ContU, U, Cont[_]](param: T => ContU, form: U => Form[U],
+                                    formFromJson: JsValue => Form[U])
+                                (implicit container: SubformContainer[ContU, U, Cont]): DynSubformField[T, ContU, U, Cont] =
+  macro SuplerFieldMacros.dynSubform_impl[T, ContU, U, Cont]
+
+  /**
+   * A new dynsubform field. Uses the provided method to create "empty" instances of objects backing the dynsubform, which
+   * are created when applying values from a JSON object.
+   *
+   * By default dynSubforms are rendered as a list. Use the `.renderHint()` method to customize.
+   */
+  def dynSubform[U, ContU, Cont[_]](param: T => ContU, form: U =>Form[U], formFromJson: JsValue => Form[U], createEmpty: () => U)
+                                   (implicit container: SubformContainer[ContU, U, Cont]): DynSubformField
+    [T, ContU, U, Cont] =
+  macro SuplerFieldMacros.dynSubform_createempty_impl[T, ContU, U, Cont]
+
 
   /**
    * A new action field. Must have a unique `name`.

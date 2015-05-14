@@ -1,3 +1,4 @@
+
 package org.supler
 
 import scala.annotation.tailrec
@@ -6,13 +7,14 @@ sealed trait FieldPath {
   private val PathSeparator = "."
 
   def append(fieldName: String) = SingleFieldPath(this, fieldName)
+
   def appendWithIndex(fieldName: String, index: Int) = SingleIndexedFieldPath(this, fieldName, index)
 
   override lazy val toString = {
     @tailrec
     def gatherComponents(fp: FieldPath, acc: List[String]): List[String] = fp match {
-      case EmptyPath                       => acc
-      case SingleFieldPath(p, n)           => gatherComponents(p, n :: acc)
+      case EmptyPath => acc
+      case SingleFieldPath(p, n) => gatherComponents(p, n :: acc)
       case SingleIndexedFieldPath(p, n, i) => gatherComponents(p, s"$n[$i]" :: acc)
     }
 

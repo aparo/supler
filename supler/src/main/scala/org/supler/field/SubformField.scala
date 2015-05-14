@@ -1,9 +1,9 @@
+
 package org.supler.field
 
-import org.json4s.JsonAST.JValue
-import org.json4s._
 import org.supler.validation._
 import org.supler.{FieldPath, Form, Id, Util}
+import play.api.libs.json._
 
 case class SubformField[T, ContU, U, Cont[_]](
   c: SubformContainer[ContU, U, Cont],
@@ -35,17 +35,17 @@ case class SubformField[T, ContU, U, Cont[_]](
     }
 
     import JSONFieldNames._
-    JObject(
-      JField(Type, JString(SpecialFieldTypes.Subform)),
-      JField(RenderHint, JObject(JField("name", JString(renderHint.name)) :: renderHint.extraJSON)),
-      JField(Multiple, JBool(c.isMultiple)),
-      JField(Label, JString(label.getOrElse(""))),
-      JField(Path, JString(parentPath.append(name).toString)),
-      JField(Value, c.combineJValues(valuesAsJValue))
+    Json.obj(
+      Type -> JsString(SpecialFieldTypes.Subform),
+      RenderHint -> JsObject(Seq("name" -> JsString(renderHint.name)) ++ renderHint.extraJSON),
+      Multiple -> JsBoolean(c.isMultiple),
+      Label -> JsString(label.getOrElse("")),
+      Path -> JsString(parentPath.append(name).toString),
+      Value -> c.combineJValues(valuesAsJValue)
     )
   }
 
-  override private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {
+  override private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T] = {
     def valuesWithIndex = c.valuesWithIndexFromJSON(jsonFields.get(name))
     val paos = valuesWithIndex.map { case (formJValue, indexOpt) =>
       embeddedForm.applyJSONValues(pathWithOptionalIndex(parentPath, indexOpt),
@@ -68,7 +68,7 @@ case class SubformField[T, ContU, U, Cont[_]](
   override private[supler] def findAction(
     parentPath: FieldPath,
     obj: T,
-    jsonFields: Map[String, JValue],
+    jsonFields: Map[String, JsValue],
     ctx: RunActionContext) = {
 
     val values = read(obj)
@@ -78,13 +78,102 @@ case class SubformField[T, ContU, U, Cont[_]](
     val valuesJValuesIndex = valuesList.zip(jvaluesWithIndex)
 
     Util
-      .findFirstMapped[(U, (JValue, Option[Int])), Option[RunnableAction]](valuesJValuesIndex, { case (v, (jvalue, indexOpt)) =>
+      .findFirstMapped[(U, (JsValue, Option[Int])), Option[RunnableAction]](valuesJValuesIndex, { case (v, (jvalue, indexOpt)) =>
         val i = indexOpt.getOrElse(0)
         val updatedCtx = ctx.push(obj, i, (v: U) => write(obj, values.update(v, i)))
         // assuming that the values matches the json (that is, that the json values were previously applied)
         embeddedForm.findAction(pathWithOptionalIndex(parentPath, indexOpt), valuesList(i), jvalue, updatedCtx)
       },
       _.isDefined).flatten
+  }
+
+  private def pathWithOptionalIndex(parentPath: FieldPath, indexOpt: Option[Int]) = indexOpt match {
+    case None => parentPath.append(name)
+    case Some(i) => parentPath.appendWithIndex(name, i)
+  }
+}
+
+case class DynSubformField[T, ContU, U, Cont[_]](
+                                               c: SubformContainer[ContU, U, Cont],
+                                               name: String,
+                                               read: T => Cont[U],
+                                               write: (T, Cont[U]) => T,
+                                               label: Option[String],
+                                               description: Option[String],
+                                               embeddedForm: U => Form[U],
+                                               formFromJson: JsValue => Form[U],
+                                               // if not specified, `embeddedForm.createEmpty` will be used
+                                               createEmpty: Option[() => U],
+                                               renderHint: RenderHint with SubformFieldCompatible,
+                                               enabledIf: T => Boolean,
+                                               includeIf: T => Boolean) extends Field[T] {
+
+  import c._
+
+  def label(newLabel: String): DynSubformField[T, ContU, U, Cont] = this.copy(label = Some(newLabel))
+  def description(newDescription: String): DynSubformField[T, ContU, U, Cont] = this.copy(description = Some(newDescription))
+
+  def renderHint(newRenderHint: RenderHint with SubformFieldCompatible): DynSubformField[T, ContU, U, Cont] = this.copy(renderHint = newRenderHint)
+
+  def enabledIf(condition: T => Boolean): DynSubformField[T, ContU, U, Cont] = this.copy(enabledIf = condition)
+  def includeIf(condition: T => Boolean): DynSubformField[T, ContU, U, Cont] = this.copy(includeIf = condition)
+
+  private[supler] def generateFieldJSON(parentPath: FieldPath, obj: T) = {
+    val valuesAsJValue = read(obj).zipWithIndex.map { case (v, indexOpt) =>
+      embeddedForm(v).generateJSON(pathWithOptionalIndex(parentPath, indexOpt), v)
+    }
+
+    import JSONFieldNames._
+    Json.obj(
+      Type -> JsString(SpecialFieldTypes.Subform),
+      RenderHint -> JsObject(Seq("name" -> JsString(renderHint.name)) ++ renderHint.extraJSON),
+      Multiple -> JsBoolean(c.isMultiple),
+      Label -> JsString(label.getOrElse("")),
+      Path -> JsString(parentPath.append(name).toString),
+      Value -> c.combineJValues(valuesAsJValue)
+    )
+  }
+
+  override private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T] = {
+    def valuesWithIndex = c.valuesWithIndexFromJSON(jsonFields.get(name))
+    val paos = valuesWithIndex.map { case (formJValue, indexOpt) =>
+      formFromJson(formJValue).applyJSONValues(pathWithOptionalIndex(parentPath, indexOpt),
+        createEmpty.getOrElse( formFromJson(formJValue).createEmpty)(), formJValue)
+    }
+
+    c.combinePaos(paos).map(write(obj, _))
+  }
+
+  override private[supler] def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope) = {
+    val valuesWithIndex = read(obj).zipWithIndex
+
+    val errorLists = valuesWithIndex.map { case (el, indexOpt) =>
+      embeddedForm(el).doValidate(pathWithOptionalIndex(parentPath, indexOpt), el, scope)
+    }
+
+    errorLists.toList.flatten
+  }
+
+  override private[supler] def findAction(
+                                           parentPath: FieldPath,
+                                           obj: T,
+                                           jsonFields: Map[String, JsValue],
+                                           ctx: RunActionContext) = {
+
+    val values = read(obj)
+    val valuesList = read(obj).toList
+    val jvaluesWithIndex = c.valuesWithIndexFromJSON(jsonFields.get(name)).toList
+
+    val valuesJValuesIndex = valuesList.zip(jvaluesWithIndex)
+
+    Util
+      .findFirstMapped[(U, (JsValue, Option[Int])), Option[RunnableAction]](valuesJValuesIndex, { case (v, (jvalue, indexOpt)) =>
+      val i = indexOpt.getOrElse(0)
+      val updatedCtx = ctx.push(obj, i, (v: U) => write(obj, values.update(v, i)))
+      // assuming that the values matches the json (that is, that the json values were previously applied)
+      embeddedForm(valuesList(i)).findAction(pathWithOptionalIndex(parentPath, indexOpt), valuesList(i), jvalue, updatedCtx)
+    },
+    _.isDefined).flatten
   }
 
   private def pathWithOptionalIndex(parentPath: FieldPath, indexOpt: Option[Int]) = indexOpt match {
@@ -115,8 +204,8 @@ trait SubformContainer[ContU, U, Cont[_]] {
   }
 
   // operations on specific types
-  def valuesWithIndexFromJSON(jvalue: Option[JValue]): Cont[(JValue, Option[Int])]
-  def combineJValues(jvalues: Cont[JValue]): JValue
+  def valuesWithIndexFromJSON(jvalue: Option[JsValue]): Cont[(JsValue, Option[Int])]
+  def combineJValues(jvalues: Cont[JsValue]): JsValue
   def combinePaos[R](paosInCont: Cont[PartiallyAppliedObj[R]]): PartiallyAppliedObj[Cont[R]]
 
   def isMultiple: Boolean
@@ -129,8 +218,8 @@ object SubformContainer {
     def update[R](cont: R)(v: R, i: Int) = v
     def zipWithIndex[R](values: R) = (values, None)
 
-    def valuesWithIndexFromJSON(jvalue: Option[JValue]) = (jvalue.getOrElse(JNothing), None)
-    def combineJValues(jvalues: JValue) = jvalues
+    def valuesWithIndexFromJSON(jvalue: Option[JsValue]) = (jvalue.getOrElse(JsNull), None)
+    def combineJValues(jvalues: JsValue) = jvalues
     def combinePaos[R](paosInCont: PartiallyAppliedObj[R]) = paosInCont
 
     def isMultiple = false
@@ -142,8 +231,8 @@ object SubformContainer {
     def zipWithIndex[R](values: Option[R]) = values.map((_, None))
     def update[R](cont: Option[R])(v: R, i: Int) = Some(v)
 
-    def valuesWithIndexFromJSON(jvalue: Option[JValue]) = jvalue.map((_, None))
-    def combineJValues(jvalues: Option[JValue]) = jvalues.getOrElse(JNothing)
+    def valuesWithIndexFromJSON(jvalue: Option[JsValue]) = jvalue.map((_, None))
+    def combineJValues(jvalues: Option[JsValue]) = jvalues.getOrElse(JsNull)
     def combinePaos[R](paosInCont: Option[PartiallyAppliedObj[R]]) = paosInCont match {
       case None => PartiallyAppliedObj.full(None)
       case Some(paos) => paos.map(Some(_))
@@ -158,11 +247,11 @@ object SubformContainer {
     def zipWithIndex[R](values: List[R]) = values.zipWithIndex.map { case (v, i) => (v, Some(i))}
     def update[R](cont: List[R])(v: R, i: Int) = cont.updated(i, v)
 
-    def valuesWithIndexFromJSON(jvalue: Option[JValue]) = jvalue match {
-      case Some(JArray(jvalues)) => jvalues.zipWithIndex.map { case (v, i) => (v, Some(i))}
+    def valuesWithIndexFromJSON(jvalue: Option[JsValue]) = jvalue match {
+      case Some(JsArray(jvalues)) => jvalues.zipWithIndex.map { case (v, i) => (v, Some(i))}.toList
       case _ => Nil
     }
-    def combineJValues(jvalues: List[JValue]) = JArray(jvalues)
+    def combineJValues(jvalues: List[JsValue]) = JsArray(jvalues)
     def combinePaos[R](paosInCont: List[PartiallyAppliedObj[R]]) = PartiallyAppliedObj.flatten(paosInCont)
 
     def isMultiple = true
@@ -174,11 +263,11 @@ object SubformContainer {
     def zipWithIndex[R](values: Vector[R]) = values.zipWithIndex.map { case (v, i) => (v, Some(i))}
     def update[R](cont: Vector[R])(v: R, i: Int) = cont.updated(i, v)
 
-    def valuesWithIndexFromJSON(jvalue: Option[JValue]) = jvalue match {
-      case Some(JArray(jvalues)) => jvalues.zipWithIndex.toVector.map { case (v, i) => (v, Some(i))}
+    def valuesWithIndexFromJSON(jvalue: Option[JsValue]) = jvalue match {
+      case Some(JsArray(jvalues)) => jvalues.zipWithIndex.toVector.map { case (v, i) => (v, Some(i))}
       case _ => Vector.empty
     }
-    def combineJValues(jvalues: Vector[JValue]) = JArray(jvalues.toList)
+    def combineJValues(jvalues: Vector[JsValue]) = JsArray(jvalues.toList)
     def combinePaos[R](paosInCont: Vector[PartiallyAppliedObj[R]]) = PartiallyAppliedObj.flatten(paosInCont.toList).map(_.toVector)
 
     def isMultiple = true

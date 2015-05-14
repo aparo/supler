@@ -1,10 +1,10 @@
+
 package org.supler.field
 
-import org.json4s.JValue
-import org.json4s.JsonAST._
 import org.supler.transformation.Transformer
 import org.supler.validation.{PartiallyAppliedObj, ValidationScope}
 import org.supler.{FieldPath, Message}
+import play.api.libs.json._
 
 import scala.concurrent.forkjoin.ThreadLocalRandom
 
@@ -33,10 +33,10 @@ case class StaticField[T](
     val msg = createMessage(obj)
     def toStringOrNull(v: Any) = if (v == null) null else v.toString
     BasicJSONData(
-      valueJSONValue = Some(JObject(
-        JField("params", JArray(msg.params.toList.flatMap(p => transformer.serialize(toStringOrNull(p)).toList))) ::
-          transformer.serialize(msg.key).map(JField("key", _)).toList
-      )),
+      valueJSONValue = Some(Json.obj(
+        "params" -> JsArray(msg.params.toList.flatMap(p => transformer.serialize(toStringOrNull(p)).toList))) ++
+          JsObject(transformer.serialize(msg.key).map(v => "key" -> v).toList)
+      ),
       validationJSON = Nil,
       emptyValue = None,
       fieldTypeName = SpecialFieldTypes.Static
@@ -45,6 +45,6 @@ case class StaticField[T](
 
   override private[supler] def doValidate(parentPath: FieldPath, obj: T, scope: ValidationScope) = Nil
 
-  override private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]) =
+  override private[supler] def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]) =
     PartiallyAppliedObj.full(obj)
 }

@@ -1,3 +1,4 @@
+
 package org.supler.validation
 
 case class PartiallyAppliedObj[T] private (errors: FieldErrors, obj: T) {

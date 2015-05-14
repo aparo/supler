@@ -1,8 +1,8 @@
+
 package org.supler.validation
 
-import org.json4s.JField
-import org.json4s.JsonAST.JString
 import org.supler.FieldPath
+import play.api.libs.json._
 
 trait ValidationScope {
   /**
@@ -12,7 +12,7 @@ trait ValidationScope {
   def generateJSONData: ValidationScopeJSONData
 }
 
-case class ValidationScopeJSONData(name: String, extra: List[JField] = Nil)
+case class ValidationScopeJSONData(name: String, extra: List[(String, JsValue)] = Nil)
 
 object ValidateFilled extends ValidationScope {
   override def shouldValidate(parentPath: FieldPath, valueMissing: Boolean) = !valueMissing
@@ -28,5 +28,5 @@ object ValidateNone extends ValidationScope {
 }
 case class ValidateInPath(rootPath: FieldPath) extends ValidationScope {
   override def shouldValidate(parentPath: FieldPath, valueMissing: Boolean) = parentPath.childOf(rootPath)
-  override def generateJSONData = ValidationScopeJSONData("path", List(JField("path", JString(rootPath.toString))))
+  override def generateJSONData = ValidationScopeJSONData("path", List("path" -> JsString(rootPath.toString)))
 }

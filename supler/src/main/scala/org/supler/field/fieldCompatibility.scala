@@ -1,3 +1,4 @@
+
 package org.supler.field
 
 trait BasicFieldCompatible

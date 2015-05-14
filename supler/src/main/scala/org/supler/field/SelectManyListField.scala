@@ -1,8 +1,9 @@
+
 package org.supler.field
 
-import org.json4s._
 import org.supler._
 import org.supler.validation._
+import play.api.libs.json._
 
 case class SelectManyListField[T, U](
   name: String,
@@ -38,17 +39,17 @@ case class SelectManyListField[T, U](
     val possibleValues = valuesProvider(obj)
     val currentValues = read(obj)
 
-    ValueJSONData(Some(JArray(currentValues.toList.flatMap(idFromValue(possibleValues, _)).map(JString))),
+    ValueJSONData(Some(JsArray(currentValues.toList.flatMap(idFromValue(possibleValues, _)).map(JsString))),
       None)
   }
 
-  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JValue]): PartiallyAppliedObj[T] = {
+  private[supler] override def applyFieldJSONValues(parentPath: FieldPath, obj: T, jsonFields: Map[String, JsValue]): PartiallyAppliedObj[T] = {
     import org.supler.validation.PartiallyAppliedObj._
 
     val possibleValues = valuesProvider(obj)
     val values = for {
       jsonValue <- jsonFields.get(name).toList
-      ids <- jsonValue match { case JArray(ids) => List(ids.collect { case JString(id) => id }); case _ => Nil }
+      ids <- jsonValue match { case JsArray(ids) => List(ids.collect { case JsString(id) => id }); case _ => Nil }
       id <- ids
       value <- valueFromId(possibleValues, id)
     } yield value

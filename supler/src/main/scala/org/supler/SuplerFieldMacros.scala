@@ -1,8 +1,10 @@
+
 package org.supler
 
 import org.joda.time.DateTime
 import org.supler.field._
 import org.supler.transformation.Transformer
+import play.api.libs.json.JsValue
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
@@ -160,6 +162,44 @@ object SuplerFieldMacros {
     }
   }
 
+
+  def dynSubform_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)(param: c.Expr[T => ContU],
+                                                                                               form: c.Expr[U =>Form[U]], formFromJson: c.Expr[JsValue => Form[U]])(container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[DynSubformField[T, ContU, U, Cont]] = {
+
+    dynSubform_createempty_impl[T, ContU, U, Cont](c)(param, form, formFromJson, null)(container)
+  }
+
+  def dynSubform_createempty_impl[T: c.WeakTypeTag, ContU, U: c.WeakTypeTag, Cont[_]](c: blackbox.Context)
+                                                                                  (param: c.Expr[T => ContU], form: c.Expr[U =>Form[U]], formFromJson: c.Expr[JsValue => Form[U]], createEmpty: c.Expr[() => U])
+                                                                                  (container: c.Expr[SubformContainer[ContU, U, Cont]]): c.Expr[DynSubformField[T, ContU, U, Cont]] = {
+
+    import c.universe._
+
+    val (fieldName, paramRepExpr) = extractFieldName(c)(param)
+
+    val readFieldValueExpr = generateFieldRead[T, Cont[U]](c)(fieldName)
+
+    val classSymbol = implicitly[WeakTypeTag[T]].tpe.typeSymbol.asClass
+
+    val writeFieldValueExpr = generateFieldWrite[T, Cont[U]](c)(fieldName, classSymbol)
+
+    val createEmptyOpt = if (createEmpty == null) {
+      reify { None }
+    } else {
+      reify { Some(createEmpty.splice) }
+    }
+
+    reify {
+      FactoryMethods.newDynSubformField(container.splice)(
+        paramRepExpr.splice,
+        readFieldValueExpr.splice,
+        writeFieldValueExpr.splice,
+        form.splice,
+        formFromJson.splice,
+        createEmptyOpt.splice)
+    }
+  }
+
   object FactoryMethods {
     def newBasicField[T, U, S](fieldName: String, read: T => U, write: (T, U) => T, required: Boolean,
       transformer: Transformer[U, S], emptyValue: Option[U]): BasicField[T, U] = {
@@ -173,6 +213,15 @@ object SuplerFieldMacros {
         embeddedForm: Form[U], createEmpty: Option[() => U]): SubformField[T, ContU, U, Cont] = {
 
       SubformField[T, ContU, U, Cont](c, fieldName, read, write, None, None, embeddedForm, createEmpty,
+        SubformListRenderHint(), AlwaysCondition, AlwaysCondition)
+    }
+
+    def newDynSubformField[T, ContU, U, Cont[_]](c: SubformContainer[ContU, U, Cont])
+                                             (fieldName: String, read: T => Cont[U], write: (T, Cont[U]) => T,
+                                              embeddedForm: U =>Form[U], formFromJson: JsValue => Form[U],
+                                              createEmpty: Option[() => U]): DynSubformField[T, ContU, U, Cont] = {
+
+      DynSubformField[T, ContU, U, Cont](c, fieldName, read, write, None, None, embeddedForm, formFromJson, createEmpty,
         SubformListRenderHint(), AlwaysCondition, AlwaysCondition)
     }
 

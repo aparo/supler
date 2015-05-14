@@ -1,12 +1,13 @@
+
 package org.supler.transformation
 
-import org.json4s.JValue
 import org.supler.field.{BasicFieldCompatible, RenderHint}
+import play.api.libs.json.JsValue
 
 class Transformer[U, S](basicTypeTransformer: BasicTypeTransformer[U, S], jsonTransformer: JsonTransformer[S]) {
-  def serialize(u: U): Option[JValue] = jsonTransformer.toJValueOrJNull(basicTypeTransformer.serialize(u))
+  def serialize(u: U): Option[JsValue] = jsonTransformer.toJValueOrJNull(basicTypeTransformer.serialize(u))
 
-  def deserialize(jvalue: JValue): Either[String, U] = for {
+  def deserialize(jvalue: JsValue): Either[String, U] = for {
     s <- jsonTransformer.fromJValue(jvalue).toRight("cannot convert json value").right
     u <- basicTypeTransformer.deserialize(s).right
   } yield u

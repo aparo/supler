@@ -1,8 +1,8 @@
 package org.supler
 
-import org.json4s.JsonAST.{JArray, JString}
 import org.scalatest._
 import org.supler.Supler._
+import play.api.libs.json._
 
 class FieldOrderTest extends FlatSpec with ShouldMatchers {
   case class OrderTestObj(field1: String, field2: String, field3: String)
@@ -26,13 +26,13 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     // when
     val json = form.generateJSON
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = (json \ "main_form"  \ "fieldOrder").as[List[List[String]]]
 
-    orderFields should have size 1
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("field2"))),
-      JArray(List(JString("field3"))) )))
+    orderFields should have size 3
+    orderFields should be( List(
+      List("field1"),
+      List("field2"),
+      List("field3") ))
   }
 
   "supler" should "generate non flat order list for ordered simple forms" in {
@@ -41,12 +41,12 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     // when
     val json = form.generateJSON
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = (json \ "main_form"  \ "fieldOrder").as[List[List[String]]]
 
-    orderFields should have size 1
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"), JString("field2"))),
-      JArray(List(JString("field3"))) )))
+    orderFields should have size 2
+    orderFields should be( List(
+      List("field1", "field2"),
+      List("field3") ))
   }
 
   "supler" should "generate order for subform" in {
@@ -58,21 +58,23 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     val formInst = formWithSubform(OrderTestParentClass("hej", o, Nil))
     // when
     val json = formInst.generateJSON
+
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+    val orderFields = (json  \\ "fieldOrder").map(_.as[List[List[String]]])
+
 
     orderFields should have size 2
 
     // first the subform
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("field2"))),
-      JArray(List(JString("field3"))) )))
+    orderFields(0) should be( List(
+      List("field1"),
+      List("field2"),
+      List("field3") ))
 
     // and the main form
-    orderFields(1)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("obj"))) )))
+    orderFields(1) should be( List(
+      List("field1"),
+      List("obj") ))
   }
 
   "supler" should "generate order for list subform" in {
@@ -84,23 +86,27 @@ class FieldOrderTest extends FlatSpec with ShouldMatchers {
     val formInst = formWithSubform(OrderTestParentClass("hej", o, List(o, o)))
     // when
     val json = formInst.generateJSON
+//    println(Json.prettyPrint(json))
     // then
-    val orderFields = json.filterField(f => f._1 == "fieldOrder")
+val orderFields = (json  \\ "fieldOrder").map(_.as[List[List[String]]])
 
     orderFields should have size 3
 
     // first the 2 subforms
-    orderFields(0)._2 should be( JArray(List(
-      JArray(List(JString("field1"), JString("field2"))),
-      JArray(List(JString("field3"))) )))
-    orderFields(1)._2 should be( JArray(List(
-      JArray(List(JString("field1"), JString("field2"))),
-      JArray(List(JString("field3"))) )))
+    orderFields(0) should be( List(
+      List("field1", "field2"),
+      List("field3") ))
+
+    orderFields(1) should be( List(
+      List("field1", "field2"),
+      List("field3") ))
 
     // and the main form
-    orderFields(2)._2 should be( JArray(List(
-      JArray(List(JString("field1"))),
-      JArray(List(JString("objList"))) )))
+
+    orderFields(2
+    ) should be( List(
+      List("field1"),
+      List("objList") ))
   }
 
   private def o = OrderTestObj("this", "is", "sparta")

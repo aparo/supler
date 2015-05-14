@@ -1,8 +1,7 @@
 package org.supler
 
-import org.json4s.JsonAST.JObject
-import org.json4s.native.JsonMethods._
 import org.scalatest._
+import play.api.libs.json._
 
 class FormMetaTest extends FlatSpec with ShouldMatchers {
   "meta" should "serialize to json" in {
@@ -10,7 +9,7 @@ class FormMetaTest extends FlatSpec with ShouldMatchers {
     val m = FormMeta(Map()) + ("tomek", "domek") + ("witek", "sprytek")
 
     // when
-    val json = compact(render(JObject(m.toJSON)))
+    val json = Json.stringify(JsObject(Seq(m.toJSON)))
 
     // then
     json should be("{\"supler_meta\":{\"tomek\":\"domek\",\"witek\":\"sprytek\"}}")
@@ -29,7 +28,7 @@ class FormMetaTest extends FlatSpec with ShouldMatchers {
         |"other_field": "bar"
         |}
       """.stripMargin
-    val jsonParsed = parse(json)
+    val jsonParsed = Json.parse(json)
 
     // when
     val meta = FormMeta.fromJSON(jsonParsed)

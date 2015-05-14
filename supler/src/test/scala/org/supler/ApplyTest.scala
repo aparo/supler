@@ -1,9 +1,9 @@
 package org.supler
 
-import org.json4s.JsonAST._
+
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import Supler._
-import org.json4s.native._
+import play.api.libs.json._
 
 class ApplyTest extends FlatSpec with ShouldMatchers {
   "form" should "apply json values to the entity given" in {
@@ -17,23 +17,24 @@ class ApplyTest extends FlatSpec with ShouldMatchers {
       f.field(_.f4)
     ))
 
-    val jsonInOrder = JObject(
-      JField("f1", JString("John")),
-      JField("f2", JInt(10)),
-      JField("f3", JBool(value = true)),
-      JField("f4", JString("Something"))
+    val jsonInOrder = JsObject(
+      Seq("f1" -> JsString("John"),
+      "f2"-> JsNumber(10),
+      "f3"-> JsBoolean(value = true),
+      "f4"-> JsString("Something"))
     )
 
-    val jsonOutOfOrder = JObject(
-      JField("f3", JBool(value = true)),
-      JField("f2", JInt(10)),
-      JField("f4", JString("")),
-      JField("f1", JString("John"))
+    val jsonOutOfOrder = JsObject(
+    Seq(
+      "f3"-> JsBoolean(true),
+      "f2"-> JsNumber(10),
+      "f4"-> JsString(""),
+      "f1"-> JsString("John"))
     )
 
-    val jsonPartial = JObject(
-      JField("f1", JString("John")),
-      JField("f2", JInt(10))
+    val jsonPartial = JsObject(Seq(
+      "f1"-> JsString("John"),
+      "f2"-> JsNumber(10))
     )
 
     val p = Person("Mary", None, f3 = false, Some("Nothing"))
@@ -58,10 +59,10 @@ class ApplyTest extends FlatSpec with ShouldMatchers {
       f.field(_.f2)
     ))
 
-    val jsonBothNull = parseJson("""{"f1": null, "f2": null}""")
-    val jsonOneNull = parseJson("""{"f1": 20, "f2": null}""")
-    val jsonOneMissing = parseJson("""{"f1": 30}""")
-    val jsonBothSet = parseJson("""{"f1": 40, "f2": 41}""")
+    val jsonBothNull = Json.parse("""{"f1": null, "f2": null}""")
+    val jsonOneNull = Json.parse("""{"f1": 20, "f2": null}""")
+    val jsonOneMissing = Json.parse("""{"f1": 30}""")
+    val jsonBothSet = Json.parse("""{"f1": 40, "f2": 41}""")
 
     // when
     val d1 = dataForm(Data(10, Some(11))).applyJSONValues(jsonBothNull).obj

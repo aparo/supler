@@ -1,8 +1,9 @@
 package org.supler
 
 import org.scalatest.{ShouldMatchers, FlatSpec}
-import org.json4s.native.JsonMethods._
+
 import Supler._
+import play.api.libs.json._
 
 class ConditionalFieldsTest extends FlatSpec with ShouldMatchers {
   case class Person(f1: String, f2: String, flag: Boolean)
@@ -17,7 +18,7 @@ class ConditionalFieldsTest extends FlatSpec with ShouldMatchers {
     f.field(_.f2)
   ))
 
-  val personValuesJson = parse(
+  val personValuesJson = Json.parse(
     """{
       | "f1": "v11",
       | "f2": "v22"
@@ -29,8 +30,8 @@ class ConditionalFieldsTest extends FlatSpec with ShouldMatchers {
     val jsonWithFlagFalse = personFormIncl(Person("v1", "v2", flag = false)).generateJSON
 
     // then
-    pretty(render(jsonWithFlagTrue)) should include ("f1")
-    pretty(render(jsonWithFlagFalse)) should not include ("f1")
+    Json.stringify(jsonWithFlagTrue) should include ("f1")
+    Json.stringify(jsonWithFlagFalse) should not include ("f1")
   }
 
   it should "apply values to a conditional field only if it is included" in {

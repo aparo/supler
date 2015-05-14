@@ -1,8 +1,8 @@
 package org.supler
 
-import org.json4s.native._
 import org.scalatest._
 import org.supler.Supler._
+import play.api.libs.json.Json
 
 class SuplerSubformTest extends FlatSpec with ShouldMatchers {
   // given
@@ -92,7 +92,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
       f.field(_.name),
       f.subform(_.cars, carForm)))
 
-    val jsonInOrder = parseJson("""
+    val jsonInOrder = Json.parse("""
         |{
         | "cars": [
         |  {
@@ -122,7 +122,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
       f.field(_.name),
       f.subform(_.car, carForm)))
 
-    val json = parseJson("""
+    val json = Json.parse("""
         |{
         | "car": {
         |  "make": "m1",
@@ -145,7 +145,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
       f.field(_.name),
       f.subform(_.car, carForm)))
 
-    val json1 = parseJson("""
+    val json1 = Json.parse("""
         |{
         | "car": {
         |  "make": "m1",
@@ -153,7 +153,7 @@ class SuplerSubformTest extends FlatSpec with ShouldMatchers {
         | }
         |}""".stripMargin)
 
-    val json2 = parseJson("{}")
+    val json2 = Json.parse("{}")
 
     // when
     val result1 = personForm(PersonOptionalCal("", None)).applyJSONValues(json1)

@@ -1,36 +1,36 @@
+
 package org.supler.validation
 
-import org.json4s.JField
-import org.json4s.JsonAST.{JDouble, JInt}
 import org.supler.Message
+import play.api.libs.json.{JsValue, JsNumber}
 
 trait Validator[T, U] {
   def doValidate(fieldValue: U, objValue: T): List[Message]
-  def generateJSON: List[JField]
+  def generateJSON: List[(String, JsValue)]
 }
 
 trait Validators {
   def minLength[T](minLength: Int) =
-    fieldValidator[T, String](_.length >= minLength)(_ => Message("error_length_tooShort", minLength))(Some(JField("min_length", JInt(minLength))))
+    fieldValidator[T, String](_.length >= minLength)(_ => Message("error_length_tooShort", minLength))(Some("min_length", JsNumber(minLength)))
 
   def maxLength[T](maxLength: Int) =
-    fieldValidator[T, String](_.length <= maxLength)(_ => Message("error_length_tooLong", maxLength))(Some(JField("max_length", JInt(maxLength))))
+    fieldValidator[T, String](_.length <= maxLength)(_ => Message("error_length_tooLong", maxLength))(Some("max_length", JsNumber(maxLength)))
 
   def gt[T, U](than: U)(implicit num: Numeric[U]) =
     fieldValidator[T, U](num.gt(_, than))(_ => Message("error_number_gt", than))(
-      Some(JField("gt", JDouble(num.toDouble(than)))))
+      Some("gt", JsNumber(num.toDouble(than))))
 
   def lt[T, U](than: U)(implicit num: Numeric[U]) =
     fieldValidator[T, U](num.lt(_, than))(_ => Message("error_number_lt", than))(
-      Some(JField("lt", JDouble(num.toDouble(than)))))
+      Some("lt", JsNumber(num.toDouble(than))))
 
   def ge[T, U](than: U)(implicit num: Numeric[U]) =
     fieldValidator[T, U](num.gteq(_, than))(_ => Message("error_number_ge", than))(
-      Some(JField("ge", JDouble(num.toDouble(than)))))
+      Some("ge", JsNumber(num.toDouble(than))))
 
   def le[T, U](than: U)(implicit num: Numeric[U]) =
     fieldValidator[T, U](num.lteq(_, than))(_ => Message("error_number_le", than))(
-      Some(JField("le", JDouble(num.toDouble(than)))))
+      Some("le", JsNumber(num.toDouble(than))))
 
   def ifDefined[T, U](vs: Validator[T, U]*): Validator[T, Option[U]] =
     new Validator[T, Option[U]] {
@@ -50,7 +50,7 @@ trait Validators {
     override def generateJSON = Nil
   }
 
-  private def fieldValidator[T, U](validityTest: U => Boolean)(createError: U => Message)(json: Some[JField]) =
+  private def fieldValidator[T, U](validityTest: U => Boolean)(createError: U => Message)(json: Some[(String, JsValue)]) =
     new Validator[T, U] {
       override def doValidate(fieldValue: U, objValue: T) = {
         if (!validityTest(fieldValue)) {
